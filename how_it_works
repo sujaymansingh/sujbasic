@@ -1,0 +1,14 @@
+The idea is:
+
+10 LET a = 10
+
+This gets parsed, and then compiled down to some python obj:
+
+StatementLet(varname='a', Expression(Term(Factor(FactorWithLiteral, '10'))))
+
+This in turn gets converted to some VM language (for now forth):
+
+VARIABLE a 10 a !
+
+We'd have to have some form of program counter or something.
+
