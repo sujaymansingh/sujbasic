@@ -87,8 +87,8 @@ class Divide(Word):
 class Dot(Word):
     def execute(self, interp):
         v = interp.stack.pop()
-        interp.outStream.write(str(v))
-        interp.outStream.write('\n')
+        interp.output.write(str(v))
+        interp.output.write('\n')
 class Dup(Word):
     def execute(self, interp):
         v = interp.stack.pop()

@@ -44,7 +44,7 @@ class TestInterpAdding(unittest.TestCase):
 
     def setUp(self):
         self.interp = Interpreter()
-        self.interp.outStream = LineReader()
+        self.interp.output = LineReader()
 
     def testArithmetic(self):
         self.interp.handleWord('5')
@@ -52,7 +52,7 @@ class TestInterpAdding(unittest.TestCase):
         self.interp.handleWord('+')
         self.interp.handleWord('.')
 
-        res = self.interp.outStream.readline()
+        res = self.interp.output.readline()
         self.assertEquals('15', res)
 
         self.interp.handleWord('15')
@@ -62,12 +62,12 @@ class TestInterpAdding(unittest.TestCase):
         self.interp.handleWord('10')
         self.interp.handleWord('/')
         self.interp.handleWord('.')
-        res = self.interp.outStream.readline()
+        res = self.interp.output.readline()
         self.assertEquals('18', res)
 
     def testArithmeticWithString(self):
         self.interp.processString('13 3 - 6 * .')
-        res = self.interp.outStream.readline()
+        res = self.interp.output.readline()
         self.assertEquals(res, '60')
 
         
