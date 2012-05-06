@@ -12,3 +12,24 @@ VARIABLE a 10 a !
 
 We'd have to have some form of program counter or something.
 
+
+
+Hello:
+------
+
+We need a LinedInterpreter
+
+lines = {}
+lines[10] = compile_to_forth(basic_code)
+
+then something like:
+    def run(self):
+        pc = lines.keys[0]
+
+        while (are_more_lines(pc)):
+            # increment the pc now rather than later
+            # this way, if the code needs to modify the pc (perhaps in a goto)
+            # we don't override it
+            pc = next_line(pc)
+            forth_code = lines[pc]
+            forth_interp.execute(forth_code)
