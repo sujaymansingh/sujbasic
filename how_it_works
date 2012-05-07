@@ -1,1 +1,44 @@
 The idea is:
+
+First of all, ignore line numbers and GOTOs.
+I don't want to have anything to do with them.
+
+Right so we have:
+    BasicParser::parse
+This produces a python object:
+    python obj (Expression, PrintStatement etc)
+Then we compile this:
+    compile(python obj)
+-> This goes down to Forth (or LLVM I guess!).
+
+--
+
+So for example:
+    A Factor object, of type variable with value 'a' would compile to something like:
+        variable_a @
+
+
+A full example (factorial):
+LET f = 1
+FOR i = 1 to 5
+    f = f * i
+NEXT
+PRINT f
+-->
+\ Set up the variables first, outside a definition.
+VARIABLE v_f
+VARIABLE v_i
+: PROGRAM
+    1 v_f !
+    5 1 + 1 DO
+        I v_i !
+        v_f @ v_i @ * v_f !
+    LOOP
+	v_f @ .
+;
+
+---
+
+So what now?
+
+So we need to start compiling!!
