@@ -42,3 +42,19 @@ VARIABLE v_i
 So what now?
 
 So we need to start compiling!!
+
+# The forth interpreter
+forth.py
+test_forth.py
+
+# The parser (lexer, grammar etc)
+parser.py
+test_parser.py
+
+# The compiler (-> forth)
+compiler.py
+test_compiler.py
+
+# Also:
+lang.py (-> data structures etc)
+test_all.py

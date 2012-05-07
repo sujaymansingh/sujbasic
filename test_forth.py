@@ -70,9 +70,10 @@ class TestInterpAdding(unittest.TestCase):
         res = self.interp.output.readline()
         self.assertEquals(res, '60')
 
-        
 
+def main():
+    unittest.main()
 
 
 if __name__ == '__main__':
-    unittest.main()
+    main()
