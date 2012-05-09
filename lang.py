@@ -61,8 +61,8 @@ class Factor(object):
 class TermOperator(object):
     def __init__(self, c): self.c = c
     def __str__(self): return self.c
-TermOperatorPlus       = TermOperator('+')
-TermOperatorMinus      = TermOperator('-')
+TermOperatorMultiply   = TermOperator('*')
+TermOperatorDivide     = TermOperator('/')
 
 class Term(object):
 
@@ -87,8 +87,8 @@ class Term(object):
 class ExpressionOperator(object):
     def __init__(self, c): self.c = c
     def __str__(self): return self.c
-ExpressionOperatorMultiply = ExpressionOperator('*')
-ExpressionOperatorDivide   = ExpressionOperator('/')
+ExpressionOperatorPlus     = ExpressionOperator('+')
+ExpressionOperatorMinus    = ExpressionOperator('-')
 
 class Expression(object):
 
@@ -106,3 +106,14 @@ class Expression(object):
     def __str__(self):
         return 'Expression(%s %s %s)' % (self.primaryTerm, self.operator, self.secondaryTerm)
 # end of Expressions
+
+
+# Print Statement
+class StatementPrint(object):
+
+    def __init__(self, expression):
+        self.expression = expression
+
+    def __str__(self):
+        return 'Print( %s )' % (self.expression)
+# end of Print Statement

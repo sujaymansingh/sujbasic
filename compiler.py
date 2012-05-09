@@ -41,10 +41,10 @@ class Compiler(object):
             for p in secondary_pcode:
                 result.append(p)
             # Now the operator, which for now is just ints.
-            if (term.operator == lang.TermOperatorPlus):
-                result.append('+')
-            elif (term.operator == lang.TermOperatorMinus):
-                result.append('-')
+            if (term.operator == lang.TermOperatorMultiply):
+                result.append('*')
+            elif (term.operator == lang.TermOperatorDivide):
+                result.append('/')
             else:
                 raise "Bad operator '%s'" % (term.operator)
 
@@ -67,16 +67,27 @@ class Compiler(object):
             for p in secondary_pcode:
                 result.append(p)
             # Now the operator, which for now is just ints.
-            if (expression.operator == lang.ExpressionOperatorMultiply):
-                result.append('*')
-            elif (expression.operator == lang.ExpressionOperatorDivide):
-                result.append('/')
+            if (expression.operator == lang.ExpressionOperatorPlus):
+                result.append('+')
+            elif (expression.operator == lang.ExpressionOperatorMinus):
+                result.append('-')
             else:
                 raise "Bad operator '%s'" % (expression.operator)
 
 
         return result
     # end of compileExpression
+
+
+    def compileStatementPrint(self, stmt):
+
+        result = self.compileExpression(stmt.expression)
+
+        # Now simply add a "." to print!
+        result.append('.')
+
+        return result
+
 
     def codeToStr(self, pcode):
         return ' '.join(pcode)

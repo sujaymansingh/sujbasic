@@ -1,4 +1,4 @@
-
+import sys
 
 # This is fairly simple :)
 #
@@ -21,21 +21,31 @@ class Stack(object):
 # end Stack
 
 
+
+registeredWords = []
+def registerWord(symbol, word):
+    registeredWords.append((symbol, word))
 # Oh my. Now what?
 #
 class Interpreter(object):
 
     def __init__(self):
+        # The basic stack...
         self.stack = Stack()
+
+        # We have a separate one for FPs.
+        self.fp_stack = Stack()
 
         # A dictionary of known words.
         self.dictionary = {}
 
-        self.dictionary['+'] = Plus()
-        self.dictionary['-'] = Minus()
-        self.dictionary['*'] = Multiply()
-        self.dictionary['/'] = Divide()
-        self.dictionary['.'] = Dot()
+        for (symbol, word) in registeredWords:
+            self.dictionary[symbol] = word
+
+        # defaults?
+        self.output = sys.stdout
+        self.input  = sys.stdin
+
 
     def handleWord(self, wordStr):
 
@@ -43,10 +53,13 @@ class Interpreter(object):
             word = self.dictionary[wordStr]
             word.execute(self)
         else:
-            # Try this as a number.
-            n = int(wordStr)
-            # Woohoo! Onto the stack.
-            self.stack.push(n)
+            try:
+                i = int(wordStr)
+                self.stack.push(i)
+            except ValueError:
+                # Actually, we might have a float...
+                f = float(wordStr)
+                self.fp_stack.push(f)
 
     def processString(self, line):
 
@@ -67,21 +80,29 @@ class Plus(Word):
         n1 = interp.stack.pop()
         n2 = interp.stack.pop()
         interp.stack.push(n2 + n1)
+registerWord('+', Plus())
+
 class Minus(Word):
     def execute(self, interp):
         n1 = interp.stack.pop()
         n2 = interp.stack.pop()
         interp.stack.push(n2 - n1)
+registerWord('-', Minus())
+
 class Multiply(Word):
     def execute(self, interp):
         n1 = interp.stack.pop()
         n2 = interp.stack.pop()
         interp.stack.push(n2 * n1)
+registerWord('*', Multiply())
+
 class Divide(Word):
     def execute(self, interp):
         n1 = interp.stack.pop()
         n2 = interp.stack.pop()
         interp.stack.push(n2 / n1)
+registerWord('/', Divide())
+
 # end simple arithmetic words.
 
 class Dot(Word):
@@ -89,14 +110,78 @@ class Dot(Word):
         v = interp.stack.pop()
         interp.output.write(str(v))
         interp.output.write('\n')
+registerWord('.', Dot())
+
 class Dup(Word):
     def execute(self, interp):
         v = interp.stack.pop()
         interp.stack.push(v)
         interp.stack.push(v)
+registerWord('DUP', Dup())
+
 class Swap(Word):
     def execute(self, interp):
         n1 = self.interp.stack.pop()
         n2 = self.interp.stack.pop()
         self.interp.stack.push(n1)
         self.interp.stack.push(n2)
+registerWord('SWAP', Swap())
+
+class Drop(Word):
+    def execute(self, interp):
+        self.interp.stack.pop()
+registerWord('DROP', Drop())
+
+
+# Floating point stuff.
+class F_Fetch(Word):
+    def execute(self, interp):
+        # TODO!
+        pass
+registerWord('F@', F_Fetch())
+
+class F_Store(Word):
+    def execute(self, interp):
+        # TODO!
+        pass
+registerWord('F!', F_Store())
+
+class F_Plus(Word):
+    def execute(self, interp):
+        f1 = interp.fp_stack.pop()
+        f2 = interp.fp_stack.pop()
+        interp.fp_stack.push(f2+f1)
+registerWord('F+', F_Plus())
+
+class F_Minus(Word):
+    def execute(self, interp):
+        f1 = interp.fp_stack.pop()
+        f2 = interp.fp_stack.pop()
+        interp.fp_stack.push(f2-f1)
+registerWord('F-', F_Minus())
+
+class F_Multiply(Word):
+    def execute(self, interp):
+        f1 = interp.fp_stack.pop()
+        f2 = interp.fp_stack.pop()
+        interp.fp_stack.push(f2*f1)
+registerWord('F*', F_Multiply())
+
+class F_Divide(Word):
+    def execute(self, interp):
+        f1 = interp.fp_stack.pop()
+        f2 = interp.fp_stack.pop()
+        interp.fp_stack.push(f2/f1)
+registerWord('F/', F_Divide())
+
+class F_Dot(Word):
+    def execute(self, interp):
+        f1 = interp.fp_stack.pop()
+        interp.output.write(str(f1))
+        interp.output.write("\n")
+registerWord('F.', F_Dot())
+
+
+
+
+# end of Floating point stuff.

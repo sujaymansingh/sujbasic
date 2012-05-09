@@ -1,5 +1,6 @@
 from forth import *
 import unittest
+import random
 
 class LineReader(object):
 
@@ -65,10 +66,43 @@ class TestInterpAdding(unittest.TestCase):
         res = self.interp.output.readline()
         self.assertEquals('18', res)
 
+    def testRandomArithmetic(self):
+        for i in range(100):
+            n1 = random.randint(0, 1000000)
+            n2 = random.randint(1, 1000000)
+            baseStr = '%d %d %s .'
+            for (operator, expected) in [('+', n1+n2),('-', n1-n2),('*', n1*n2),('/', n1/n2)]:
+                self.interp.processString(baseStr % (n1, n2, operator))
+                res = self.interp.output.readline()
+                self.assertEquals(str(expected), res)
+
     def testArithmeticWithString(self):
         self.interp.processString('13 3 - 6 * .')
         res = self.interp.output.readline()
         self.assertEquals(res, '60')
+
+
+class TestFloatingPoint(unittest.TestCase):
+
+    def setUp(self):
+        self.interp = Interpreter()
+        self.interp.output = LineReader()
+
+    def testRandomArithmetic(self):
+        for i in range(100):
+            n1 = random.uniform(0, 100.0)
+            n2 = random.uniform(0.1, 100.0)
+            baseStr = '%.20e %.20e %s F.'
+            for (operator, expected) in [('F+', n1+n2),('F-', n1-n2),('F*', n1*n2),('F/', n1/n2)]:
+                self.interp.processString(baseStr % (n1, n2, operator))
+
+                res = self.interp.output.readline()
+                f1 = float(res)
+                # Gah, floating point!!!
+                diff = abs(f1-expected)
+                self.assertTrue(diff < 1e-4)
+            
+
 
 
 def main():
