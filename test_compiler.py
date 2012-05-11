@@ -20,18 +20,18 @@ class TestFactor(unittest.TestCase):
         "Simpler...maybe."
 
         term = Term(Factor(FactorTypeLiteral, createTypedValue(6)))
-        term.addFactor(TermOperatorPlus, Factor(FactorTypeLiteral, createTypedValue(11)))
+        term.addFactor(TermOperatorMultiply, Factor(FactorTypeLiteral, createTypedValue(11)))
         res = self.compiler.compileTerm(term)
-        self.assertEquals(['6', '11', '+'], res)
+        self.assertEquals(['6', '11', '*'], res)
     
     def testExpression(self):
 
-        # (5+8) * (6-4)
-        term1 = Term(Factor(FactorTypeLiteral, createTypedValue(5)), TermOperatorPlus, Factor(FactorTypeLiteral, createTypedValue(8)))
-        term2 = Term(Factor(FactorTypeLiteral, createTypedValue(6)), TermOperatorMinus, Factor(FactorTypeLiteral, createTypedValue(4)))
-        expression = Expression(term1, ExpressionOperatorMultiply, term2)
+        # (5*8) - (8/4)
+        term1 = Term(Factor(FactorTypeLiteral, createTypedValue(5)), TermOperatorMultiply, Factor(FactorTypeLiteral, createTypedValue(8)))
+        term2 = Term(Factor(FactorTypeLiteral, createTypedValue(8)), TermOperatorDivide, Factor(FactorTypeLiteral, createTypedValue(4)))
+        expression = Expression(term1, ExpressionOperatorMinus, term2)
         resStr = self.compiler.codeToStr(self.compiler.compileExpression(expression))
-        self.assertEquals('5 8 + 6 4 - *', resStr)
+        self.assertEquals('5 8 * 8 4 / -', resStr)
     # testTerms
 
 
