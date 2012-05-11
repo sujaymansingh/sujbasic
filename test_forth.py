@@ -20,7 +20,7 @@ class LineReader(object):
         line = self.lines[0]
         self.lines = self.lines[1:]
         return line
-        
+
 
 class TestStack(unittest.TestCase):
 
@@ -40,12 +40,14 @@ class TestStack(unittest.TestCase):
             self.assertEquals(items[i], stack.pop())
             i -= 1
 
-
-class TestInterpAdding(unittest.TestCase):
-
+class TestCaseWithInterp(unittest.TestCase):
     def setUp(self):
         self.interp = Interpreter()
         self.interp.output = LineReader()
+    
+
+
+class TestInterpAdding(TestCaseWithInterp):
 
     def testArithmetic(self):
         self.interp.handleWord('5')
@@ -82,11 +84,7 @@ class TestInterpAdding(unittest.TestCase):
         self.assertEquals(res, '60')
 
 
-class TestFloatingPoint(unittest.TestCase):
-
-    def setUp(self):
-        self.interp = Interpreter()
-        self.interp.output = LineReader()
+class TestFloatingPoint(TestCaseWithInterp):
 
     def testRandomArithmetic(self):
         for i in range(100):
@@ -101,8 +99,43 @@ class TestFloatingPoint(unittest.TestCase):
                 # Gah, floating point!!!
                 diff = abs(f1-expected)
                 self.assertTrue(diff < 1e-4)
-            
 
+
+class TestDoubleInts(TestCaseWithInterp):
+
+    def testParsing(self):
+        testCases = []
+        testCases.append(('12.', True,  (12, 0)))
+        testCases.append(('12',  False, (12, 0)))
+        testCases.append(('35.56', True,  (3556, 0)))
+        testCases.append(('4294967298.', True,  (2, 1)))
+        testCases.append(('3.00000001e1.', False,  (2, 1)))
+        for (word, expectedBool, expectedNum) in testCases:
+            isDouble = isDoubleInt(word)
+            self.assertEquals(isDouble, expectedBool)
+            if (isDouble):
+                self.assertEquals(parseDoubleInt(word), expectedNum)
+
+    def testSimple(self):
+        self.interp.processString('5 2 D. CR')
+        res = self.interp.output.readline()
+        self.assertEquals(int(res), (2*MAX_UINT)+5)
+
+    def testRandomArithmetic(self):
+        for i in range(100):
+            # Max uint is 4294967296
+            n1 = random.randint(4000000000, 40000000000)
+            n2 = random.randint(4000000000, 40000000000)
+            baseStr = '%d. %d. %s'
+            for (operator, expected) in [('D+', n1+n2),('D-', n1-n2),('D*', n1*n2),('D/', n1/n2)]:
+                self.interp.processString(baseStr % (n1, n2, operator))
+                self.interp.processString('D. CR')
+                res = self.interp.output.readline()
+                self.assertEquals(str(expected), res)
+
+
+
+class TestConversion(TestCaseWithInterp): pass
 
 
 def main():

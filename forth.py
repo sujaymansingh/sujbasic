@@ -1,4 +1,7 @@
 import sys
+import re
+
+MAX_UINT = 4294967296
 
 # This is fairly simple :)
 #
@@ -21,6 +24,8 @@ class Stack(object):
 # end Stack
 
 
+
+doubleRe = re.compile(r"^\d+\.\d*$")
 
 registeredWords = []
 def registerWord(symbol, word):
@@ -52,7 +57,11 @@ class Interpreter(object):
         if (wordStr in self.dictionary):
             word = self.dictionary[wordStr]
             word.execute(self)
+        elif isDoubleInt(wordStr):
+            for i in parseDoubleInt(wordStr):
+                self.stack.push(i)
         else:
+            
             try:
                 i = int(wordStr)
                 self.stack.push(i)
@@ -132,8 +141,14 @@ class Drop(Word):
         self.interp.stack.pop()
 registerWord('DROP', Drop())
 
+class CR(Word):
+    def execute(self, interp):
+        interp.output.write("\n")
+registerWord('CR', CR())
+
 
 # Floating point stuff.
+#
 class F_Fetch(Word):
     def execute(self, interp):
         # TODO!
@@ -180,8 +195,80 @@ class F_Dot(Word):
         interp.output.write(str(f1))
         interp.output.write("\n")
 registerWord('F.', F_Dot())
-
-
-
-
 # end of Floating point stuff.
+
+
+# DoubleInt stuff
+#
+def doubleInt(big, small):
+    return (big * MAX_UINT) + small
+
+def singleInts(doubleInt):
+    big = doubleInt / MAX_UINT
+    small = doubleInt - (big*MAX_UINT)
+    return (small, big)
+
+def isDoubleInt(wordStr):
+    return (doubleRe.match(wordStr) != None)
+
+def parseDoubleInt(wordStr):
+    res = ''
+    for c in wordStr:
+        if c != '.':
+            res += c
+    return singleInts(int(res))
+
+class D_Fetch(Word):
+    def execute(self, interp):
+        # TODO!
+        pass
+registerWord('D@', D_Fetch())
+
+class D_Store(Word):
+    def execute(self, interp):
+        # TODO!
+        pass
+registerWord('D!', D_Store())
+
+class D_Plus(Word):
+    def execute(self, interp):
+        d1 = doubleInt(interp.stack.pop(), interp.stack.pop())
+        d2 = doubleInt(interp.stack.pop(), interp.stack.pop())
+        res = d1 + d2
+        for i in singleInts(res):
+            interp.stack.push(i)
+registerWord('D+', D_Plus())
+
+class D_Minus(Word):
+    def execute(self, interp):
+        d1 = doubleInt(interp.stack.pop(), interp.stack.pop())
+        d2 = doubleInt(interp.stack.pop(), interp.stack.pop())
+        res = d2 - d1
+        for i in singleInts(res):
+            interp.stack.push(i)
+registerWord('D-', D_Minus())
+
+class D_Multiply(Word):
+    def execute(self, interp):
+        d1 = doubleInt(interp.stack.pop(), interp.stack.pop())
+        d2 = doubleInt(interp.stack.pop(), interp.stack.pop())
+        res = d1 * d2
+        for i in singleInts(res):
+            interp.stack.push(i)
+registerWord('D*', D_Multiply())
+
+class D_Divide(Word):
+    def execute(self, interp):
+        d1 = doubleInt(interp.stack.pop(), interp.stack.pop())
+        d2 = doubleInt(interp.stack.pop(), interp.stack.pop())
+        res = d2 / d1
+        for i in singleInts(res):
+            interp.stack.push(i)
+registerWord('D/', D_Divide())
+
+class D_Dot(Word):
+    def execute(self, interp):
+        d1 = doubleInt(interp.stack.pop(), interp.stack.pop())
+        interp.output.write(str(d1))
+registerWord('D.', D_Dot())
+# end of DoubleInt stuff.
