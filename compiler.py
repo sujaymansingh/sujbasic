@@ -1,96 +1,132 @@
+"""
+Yeah.
+"""
 
 import lang
+
 
 class Compiler(object):
 
 
-    def compileFactor(self, factor):
-
+    def compileFactor(self, factor, targetType):
+        "What we want to do is simply take a factor and compile it, but also make sure it is the correct type"
         value = factor.value
-        
-        if (factor.factorType == lang.FactorTypeLiteral):
-            # For now, I can only deal with integers. Maybe.
-            if (value.dataType == lang.DataTypeInteger):
-                return [str(value.value)]
-            elif (value.dataType == lang.DataTypeFloat):
-                return ['TODO']
-            elif (value.dataType == lang.DataTypeString):
-                return ['TODO']
+        sourceType = self.typeObjFor(factor)
 
-        elif (factor.factorType == lang.FactorTypeVariable):
-            return ['TODO']
+        # The resulting forth code for this...
+        result = []
 
-        elif (factor.factorType == lang.FactorTypeExpression):
-            return self.compileExpression(value)
+        if factor.factorType == lang.FactorTypeLiteral:
+            if value.dataType == lang.DataTypeInteger:
+                result.append(str(value.value))
+            elif value.dataType == lang.DataTypeFloat:
+                # Unfortunately Forth treats numbers with full stops in them as double value ints
+                # rather than floats. So we have to represent this in scientific notation.
+                # Also, use a ridiculous specifier (.20) otherwise we'll lose too much precision.
+                result.append('%.20e' % (value.value))
+            elif value.dataType == lang.DataTypeString:
+                result.append('TODO')
+
+        elif factor.factorType == lang.FactorTypeVariable:
+            result.append('TODO')
+
+        elif factor.factorType == lang.FactorTypeExpression:
+            result.extend(self.compileExpression(factor.value))
+
+        # Now do any converting that we need.
+        if targetType != None:
+            result.extend(sourceType.convertTo(targetType))
+
+        return result
     # end of compileFactor
 
 
     def compileTerm(self, term):
-        result = []
+        combineDetails = self.combineDetails(term.primaryFactor, term.operator, term.secondaryFactor)
+        
 
-        # No matter what, we need to compile the first factor.
-        primary_pcode = self.compileFactor(term.primaryFactor)
-
-        # I guess we need to look at the type but for now we only care about ints.
-        for p in primary_pcode:
-            result.append(p)
-
-        # Are there any other terms?
-        if (term.secondaryFactor != None):
-            secondary_pcode = self.compileFactor(term.secondaryFactor)
-            for p in secondary_pcode:
-                result.append(p)
-            # Now the operator, which for now is just ints.
-            if (term.operator == lang.TermOperatorMultiply):
-                result.append('*')
-            elif (term.operator == lang.TermOperatorDivide):
-                result.append('/')
-            else:
-                raise "Bad operator '%s'" % (term.operator)
-
-        return result
     # end of compileTerm
 
 
-    def compileExpression(self, expression):
-        result = []
-
-        # similar to terms...
-        primary_pcode = self.compileTerm(expression.primaryTerm)
-
-        # I guess we need to look at the type but for now we only care about ints.
-        for p in primary_pcode:
-            result.append(p)
-
-        if (expression.secondaryTerm != None):
-            secondary_pcode = self.compileTerm(expression.secondaryTerm)
-            for p in secondary_pcode:
-                result.append(p)
-            # Now the operator, which for now is just ints.
-            if (expression.operator == lang.ExpressionOperatorPlus):
-                result.append('+')
-            elif (expression.operator == lang.ExpressionOperatorMinus):
-                result.append('-')
-            else:
-                raise "Bad operator '%s'" % (expression.operator)
 
 
-        return result
-    # end of compileExpression
+    def combineDetails(self, primary, operator, secondary):
+        pass
 
 
-    def compileStatementPrint(self, stmt):
+    def typeObjFor(self, item):
+        # Factors might be simple...
+        if type(item) == lang.Factor:
+            if item.factorType == lang.FactorTypeLiteral:
+                return self.toCompilerTypeObjFor(item.value.dataType)
+            elif item.factorType == lang.FactorTypeVariable:
+                return None
+            elif item.factorType == lang.FactorTypeExpression:
+                return None
 
-        result = self.compileExpression(stmt.expression)
-
-        # Now simply add a "." to print!
-        result.append('.')
-
-        return result
 
 
-    def codeToStr(self, pcode):
-        return ' '.join(pcode)
+    def toCompilerTypeObjFor(self, langDataType):
+        if langDataType == lang.DataTypeInteger:
+            return ForthDataTypeInteger()
+        elif langDataType == lang.DataTypeFloat:
+            return ForthDataTypeFloat()
+        elif langDataType == lang.DataTypeString:
+            return ForthDataTypeString()
 
-# end of Compiler
+# Data Types!
+#
+#
+class ForthDataType(object):
+    def convertTo(self, otherForthDataType):
+        pass
+class ForthDataTypeInteger(ForthDataType):
+    def convertTo(self, otherForthDataType):
+        if type(otherForthDataType) == ForthDataTypeInteger:
+            # Nothing to do or see here!
+            return []
+        elif type(otherForthDataType) == ForthDataTypeDoubleInteger:
+            # If the existing int is 'n', then we want 'n 0' on the stack.
+            return ['S>D']
+        elif type(otherForthDataType) == ForthDataTypeFloat:
+            return ['S>D', 'D>F']
+        elif type(otherForthDataType) == ForthDataTypeString:
+            return ['TODO']
+# end of ForthDataTypeInteger
+class ForthDataTypeDoubleInteger(ForthDataType):
+    def convertTo(self, otherForthDataType):
+        if type(otherForthDataType) == ForthDataTypeInteger:
+            return ['D>S']
+        elif type(otherForthDataType) == ForthDataTypeDoubleInteger:
+            # Nothing to do or see here!
+            return ['']
+        elif type(otherForthDataType) == ForthDataTypeFloat:
+            return ['D>F']
+        elif type(otherForthDataType) == ForthDataTypeString:
+            return ['TODO']
+# end of ForthDataTypeDoubleInteger
+class ForthDataTypeFloat(ForthDataType):
+    def convertTo(self, otherForthDataType):
+        if type(otherForthDataType) == ForthDataTypeInteger:
+            return ['F>D', 'D>S']
+        elif type(otherForthDataType) == ForthDataTypeDoubleInteger:
+            return ['F>D']
+        elif type(otherForthDataType) == ForthDataTypeFloat:
+            # Nothing to do or see here!
+            return []
+        elif type(otherForthDataType) == ForthDataTypeString:
+            return ['TODO']
+# end of ForthDataTypeFloat
+class ForthDataTypeString(ForthDataType):
+    def convertTo(self, otherForthDataType):
+        if type(otherForthDataType) == ForthDataTypeInteger:
+            return ['TODO']
+        elif type(otherForthDataType) == ForthDataTypeDoubleInteger:
+            return ['TODO']
+        elif type(otherForthDataType) == ForthDataTypeFloat:
+            return ['TODO']
+        elif type(otherForthDataType) == ForthDataTypeString:
+            # Nothing to do or see here!
+            return []
+# end of ForthDataTypeFloat
 

@@ -8,31 +8,34 @@ class TestFactor(unittest.TestCase):
     def setUp(self):
         self.compiler = Compiler()
 
+    def testTypeObjFor(self):
+        # Right, let's test very simple factors.
+        f1 = Factor(FactorTypeLiteral, createTypedValue(5))
+        self.assertTrue(type(self.compiler.typeObjFor(f1)) == ForthDataTypeInteger)
+        f2 = Factor(FactorTypeLiteral, createTypedValue(5.0))
+        self.assertTrue(type(self.compiler.typeObjFor(f2)) == ForthDataTypeFloat)
+        f3 = Factor(FactorTypeLiteral, createTypedValue("five"))
+        self.assertTrue(type(self.compiler.typeObjFor(f3)) == ForthDataTypeString)
+
+
     def testLiterals(self):
-        "So this should be fairly simple right?"
 
-        factor = Factor(FactorTypeLiteral, createTypedValue(5))
-        res = self.compiler.compileFactor(factor)
-        self.assertEquals(['5'], res)
+        f1 = Factor(FactorTypeLiteral, createTypedValue(5))
+        self.assertEquals(self.compiler.compileFactor(f1, None), ['5'])
+        # To float?
+        self.assertEquals(self.compiler.compileFactor(f1, ForthDataTypeFloat()), ['5', 'S>D', 'D>F'])
+        # To String? Hehehe.
+        # TODO
+
+        f2 = Factor(FactorTypeLiteral, createTypedValue(42.4))
+        f_str = '%.20e' % (42.4)
+        self.assertEquals(self.compiler.compileFactor(f2, None), [f_str])
+        # To int...
+        self.assertEquals(self.compiler.compileFactor(f2, ForthDataTypeInteger()), [f_str, 'F>D', 'D>S'])
+
+
+        pass
     # testLiterals
-
-    def testTerms(self):
-        "Simpler...maybe."
-
-        term = Term(Factor(FactorTypeLiteral, createTypedValue(6)))
-        term.addFactor(TermOperatorMultiply, Factor(FactorTypeLiteral, createTypedValue(11)))
-        res = self.compiler.compileTerm(term)
-        self.assertEquals(['6', '11', '*'], res)
-    
-    def testExpression(self):
-
-        # (5*8) - (8/4)
-        term1 = Term(Factor(FactorTypeLiteral, createTypedValue(5)), TermOperatorMultiply, Factor(FactorTypeLiteral, createTypedValue(8)))
-        term2 = Term(Factor(FactorTypeLiteral, createTypedValue(8)), TermOperatorDivide, Factor(FactorTypeLiteral, createTypedValue(4)))
-        expression = Expression(term1, ExpressionOperatorMinus, term2)
-        resStr = self.compiler.codeToStr(self.compiler.compileExpression(expression))
-        self.assertEquals('5 8 * 8 4 / -', resStr)
-    # testTerms
 
 
 def main():
