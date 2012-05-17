@@ -52,7 +52,7 @@ class Factor(object):
         self.value      = value
 
     def __str__(self):
-        return 'Factor(%s %s)' % (self.factorType, self.value)
+        return 'Factor(%s, %s)' % (self.factorType, self.value)
 # end of Factors
 
 
@@ -78,7 +78,7 @@ class Term(object):
         self.secondaryFactor = secondaryFactor
 
     def __str__(self):
-        return 'Term(%s %s %s)' % (self.primaryFactor, self.operator, self.secondaryFactor)
+        return 'Term(%s, %s, %s)' % (self.primaryFactor, self.operator, self.secondaryFactor)
 # end of Terms
 
 
@@ -104,7 +104,7 @@ class Expression(object):
         self.secondaryTerm = secondaryTerm
 
     def __str__(self):
-        return 'Expression(%s %s %s)' % (self.primaryTerm, self.operator, self.secondaryTerm)
+        return 'Expression(%s, %s, %s)' % (self.primaryTerm, self.operator, self.secondaryTerm)
 # end of Expressions
 
 
@@ -115,5 +115,5 @@ class StatementPrint(object):
         self.expression = expression
 
     def __str__(self):
-        return 'Print( %s )' % (self.expression)
+        return 'StatementPrint( %s )' % (self.expression)
 # end of Print Statement
