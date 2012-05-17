@@ -272,3 +272,29 @@ class D_Dot(Word):
         interp.output.write(str(d1))
 registerWord('D.', D_Dot())
 # end of DoubleInt stuff.
+
+
+# Some simple conversion stuff.
+class StoD(Word):
+    def execute(self, interp):
+        interp.stack.push(0)
+registerWord('S>D', StoD())
+class DtoS(Word):
+    def execute(self, interp):
+        interp.stack.pop()
+registerWord('D>S', DtoS())
+class DtoF(Word):
+    def execute(self, interp):
+        d1 = doubleInt(interp.stack.pop(), interp.stack.pop())
+        f1 = d1+0.0
+        interp.fp_stack.push(f1)
+registerWord('D>F', DtoF())
+class FtoD(Word):
+    def execute(self, interp):
+        f1 = interp.fp_stack.pop()
+        d1 = int(f1)
+        for i in singleInts(d1):
+            interp.stack.push(i)
+registerWord('F>D', FtoD())
+    
+# end of Some simple conversion stuff.

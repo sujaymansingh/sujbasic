@@ -135,7 +135,27 @@ class TestDoubleInts(TestCaseWithInterp):
 
 
 
-class TestConversion(TestCaseWithInterp): pass
+class TestConversion(TestCaseWithInterp):
+
+    def testS_D(self):
+        self.interp.processString('5 S>D')
+        self.assertEquals([5, 0], self.interp.stack.copyOfItems())
+        self.interp.processString('D>S')
+        self.assertEquals([5], self.interp.stack.copyOfItems())
+
+        self.interp.processString('S>D D>F')
+        self.assertEquals([], self.interp.stack.copyOfItems())
+        self.assertEquals([5.0], self.interp.fp_stack.copyOfItems())
+
+        self.interp.processString('F>D')
+        self.assertEquals([5, 0], self.interp.stack.copyOfItems())
+        self.assertEquals([], self.interp.fp_stack.copyOfItems())
+
+        self.interp.processString('D>S')
+        self.assertEquals([5], self.interp.stack.copyOfItems())
+        self.assertEquals([], self.interp.fp_stack.copyOfItems())
+
+
 
 
 def main():

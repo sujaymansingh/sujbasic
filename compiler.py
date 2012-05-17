@@ -155,8 +155,13 @@ class Compiler(object):
 
     def compileStatementPrint(self, stmt):
         result = self.compileExpression(stmt.expression)
+        # What about the type eh?
+        typeObj = self.typeObjFor(stmt.expression)
         # Now simply add a "." to print!
-        result.append('.')
+        if type(typeObj) == ForthDataTypeInteger:
+            result.append('.')
+        elif type(typeObj) == ForthDataTypeFloat:
+            result.append('F.')
         return result
 
     def codeToStr(self, pcode):
