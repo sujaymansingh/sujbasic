@@ -86,8 +86,11 @@ class BasicLexer(object):
 
     # A number.
     def t_NUMBER(self, t):
-        r'\d+'
-        t.value = int(t.value)
+        r'\d*\.?\d+'
+        if (t.value.find('.') == -1):
+            t.value = int(t.value)
+        else:
+            t.value = float(t.value)
         return t
     
     # An identifier
