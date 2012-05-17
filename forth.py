@@ -118,7 +118,6 @@ class Dot(Word):
     def execute(self, interp):
         v = interp.stack.pop()
         interp.output.write(str(v))
-        interp.output.write('\n')
 registerWord('.', Dot())
 
 class Dup(Word):
@@ -193,7 +192,6 @@ class F_Dot(Word):
     def execute(self, interp):
         f1 = interp.fp_stack.pop()
         interp.output.write(str(f1))
-        interp.output.write("\n")
 registerWord('F.', F_Dot())
 # end of Floating point stuff.
 

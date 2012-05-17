@@ -162,6 +162,7 @@ class Compiler(object):
             result.append('.')
         elif type(typeObj) == ForthDataTypeFloat:
             result.append('F.')
+        result.append('CR')
         return result
 
     def codeToStr(self, pcode):

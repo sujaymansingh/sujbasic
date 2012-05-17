@@ -54,6 +54,7 @@ class TestInterpAdding(TestCaseWithInterp):
         self.interp.handleWord('10')
         self.interp.handleWord('+')
         self.interp.handleWord('.')
+        self.interp.handleWord('CR')
 
         res = self.interp.output.readline()
         self.assertEquals('15', res)
@@ -65,6 +66,7 @@ class TestInterpAdding(TestCaseWithInterp):
         self.interp.handleWord('10')
         self.interp.handleWord('/')
         self.interp.handleWord('.')
+        self.interp.handleWord('CR')
         res = self.interp.output.readline()
         self.assertEquals('18', res)
 
@@ -72,14 +74,14 @@ class TestInterpAdding(TestCaseWithInterp):
         for i in range(100):
             n1 = random.randint(0, 1000000)
             n2 = random.randint(1, 1000000)
-            baseStr = '%d %d %s .'
+            baseStr = '%d %d %s . CR'
             for (operator, expected) in [('+', n1+n2),('-', n1-n2),('*', n1*n2),('/', n1/n2)]:
                 self.interp.processString(baseStr % (n1, n2, operator))
                 res = self.interp.output.readline()
                 self.assertEquals(str(expected), res)
 
     def testArithmeticWithString(self):
-        self.interp.processString('13 3 - 6 * .')
+        self.interp.processString('13 3 - 6 * . CR')
         res = self.interp.output.readline()
         self.assertEquals(res, '60')
 
@@ -90,7 +92,7 @@ class TestFloatingPoint(TestCaseWithInterp):
         for i in range(100):
             n1 = random.uniform(0, 100.0)
             n2 = random.uniform(0.1, 100.0)
-            baseStr = '%.20e %.20e %s F.'
+            baseStr = '%.20e %.20e %s F. CR'
             for (operator, expected) in [('F+', n1+n2),('F-', n1-n2),('F*', n1*n2),('F/', n1/n2)]:
                 self.interp.processString(baseStr % (n1, n2, operator))
 
