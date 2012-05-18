@@ -296,3 +296,22 @@ class FtoD(Word):
 registerWord('F>D', FtoD())
     
 # end of Some simple conversion stuff.
+
+
+
+if __name__ == '__main__':
+
+    interp = Interpreter()
+
+    keepGoing = True
+
+    while keepGoing:
+        try:
+            line = raw_input('forth> ')
+            try:
+                interp.processString(line)
+                interp.output.write(" ok\n")
+            except Exception as e:
+                print 'Encountered erroe ',e
+        except EOFError:
+            keepGoing = False
