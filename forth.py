@@ -21,6 +21,12 @@ class Stack(object):
         for item in self.items:
             result.append(item)
         return result
+
+    def isEmpty(self):
+        return len(self.items) == 0
+
+    def top(self):
+        return self.items[len(self.items)-1]
 # end Stack
 
 

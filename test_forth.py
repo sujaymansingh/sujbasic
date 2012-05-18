@@ -26,9 +26,16 @@ class TestStack(unittest.TestCase):
 
     def testBasicOps(self):
         stack = Stack()
+        self.assertTrue(stack.isEmpty())
+
         stack.push(10)
-        top = stack.pop()
-        self.assertEquals(10, top)
+        self.assertFalse(stack.isEmpty())
+
+        top1 = stack.top()
+        top2 = stack.pop()
+
+        self.assertEquals(10, top1)
+        self.assertEquals(10, top2)
 
         items = [10, '32', 'sujay', Stack()]
         for item in items:
