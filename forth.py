@@ -30,12 +30,24 @@ class Stack(object):
 # end Stack
 
 
+# WordHandler
+# Sometimes we might have something handling the words for a while before the interpreter gets them.
+# E.g. a compiler, or a string definition.
+#
+class WordHandler(object):
+    def handleWord(self, wordStr, interp):
+        # If we're done handling all our words, return true.
+        return True
+# end WordHandler
+
 
 doubleRe = re.compile(r"^\d+\.\d*$")
 
 registeredWords = []
 def registerWord(symbol, word):
     registeredWords.append((symbol, word))
+
+
 # Oh my. Now what?
 #
 class Interpreter(object):
@@ -53,12 +65,22 @@ class Interpreter(object):
         for (symbol, word) in registeredWords:
             self.dictionary[symbol] = word
 
+        self.wordHandlers = Stack()
+
         # defaults?
         self.output = sys.stdout
         self.input  = sys.stdin
 
 
     def handleWord(self, wordStr):
+
+        # Wait a second
+        if not self.wordHandlers.isEmpty():
+            wordHandler = self.wordHandlers.top()
+            whIsDone = wordHandler.handleWord(wordStr, self)
+            if whIsDone:
+                self.wordHandlers.pop()
+            return
 
         if (wordStr in self.dictionary):
             word = self.dictionary[wordStr]
@@ -125,6 +147,12 @@ class Dot(Word):
         v = interp.stack.pop()
         interp.output.write(str(v))
 registerWord('.', Dot())
+
+class DotS(Word):
+    def execute(self, interp):
+        for item in interp.stack.copyOfItems():
+            interp.output.write(str(item))
+registerWord('.S', DotS())
 
 class Dup(Word):
     def execute(self, interp):
@@ -303,6 +331,39 @@ registerWord('F>D', FtoD())
     
 # end of Some simple conversion stuff.
 
+
+
+# How to define extra words.
+#
+class DefinedWord(Word):
+    def __init__(self, wordsBuffer):
+        self.wordsBuffer = wordsBuffer
+    def execute(self, interp):
+        for word in self.wordsBuffer:
+            interp.handleWord(word)
+
+class Colon(Word):
+    def execute(self, interp):
+        tempWordDefiner = WordDefiner()
+        interp.wordHandlers.push(tempWordDefiner)
+registerWord(':', Colon())
+        
+class WordDefiner(WordHandler):
+
+    def __init__(self):
+        self.buffer = []
+
+    def handleWord(self, wordStr, interp):
+        if wordStr == ";":
+            name = self.buffer[0]
+            wordsBuffer = self.buffer[1:]
+            newlyDefinedWord = DefinedWord(wordsBuffer)
+            interp.dictionary[name] = newlyDefinedWord
+            return True
+        else:
+            self.buffer.append(wordStr)
+            return False
+# end of How to define extra words.
 
 
 if __name__ == '__main__':
