@@ -416,10 +416,10 @@ registerWord('F>D', FtoD())
 # How to define extra words.
 #
 class DefinedWord(Word):
-    def __init__(self, wordsBuffer):
-        self.wordsBuffer = wordsBuffer
+    def __init__(self, tokensBuffer):
+        self.tokensBuffer = tokensBuffer
     def execute(self, interp):
-        for token in self.wordsBuffer:
+        for token in self.tokensBuffer:
             interp.handleToken(token, True)
 
 class Colon(Word):
