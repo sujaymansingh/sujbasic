@@ -82,17 +82,6 @@ class MemoryHeap(object):
 # end MemoryHeap
 
 
-# WordHandler
-# Sometimes we might have something handling the words for a while before the interpreter gets them.
-# E.g. a compiler, or a string definition.
-#
-class WordHandler(object):
-    def handleWord(self, wordStr, interp):
-        # If we're done handling all our words, return true.
-        return True
-# end WordHandler
-
-
 doubleRe = re.compile(r"^\d+\.\d*$")
 
 registeredWords = []
@@ -177,38 +166,10 @@ class Interpreter(object):
     def addWord(self, symbol, word):
         self.dictionary[symbol] = word
 
-    def handleWord(self, wordStr):
-
-        # Is there anything waiting for a token?
-
-        # Wait a second
-        if not self.wordHandlers.isEmpty():
-            wordHandler = self.wordHandlers.top()
-            whIsDone = wordHandler.handleWord(wordStr, self)
-            if whIsDone:
-                self.wordHandlers.pop()
-            return
-
-        if (wordStr in self.dictionary):
-            word = self.dictionary[wordStr]
-            word.execute(self)
-        elif isDoubleInt(wordStr):
-            for i in parseDoubleInt(wordStr):
-                self.stack.push(i)
-        else:
-            
-            try:
-                i = int(wordStr)
-                self.stack.push(i)
-            except ValueError:
-                # Actually, we might have a float...
-                f = float(wordStr)
-                self.fp_stack.push(f)
-
     def processString(self, line):
-
         for token in line.split():
             self.handleToken(token)
+# end Interpreter
 
 
 # Abstract class
@@ -475,14 +436,6 @@ class AllocatedAddress(Word):
         self.address = address
     def execute(self, interp):
         interp.stack.push(self.address)
-
-class CreateHandler(WordHandler):
-    def handleWord(self, wordStr, interp):
-        currentAddress = interp.memoryHeap.currentAddress()
-        allocated = AllocatedAddress(currentAddress)
-        interp.dictionary[wordStr] = allocated
-        # We don't want to read any more.
-        return True
 
 class CreateWord(Word):
     def execute(self, interp):
