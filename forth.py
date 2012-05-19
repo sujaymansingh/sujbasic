@@ -30,6 +30,28 @@ class Stack(object):
 # end Stack
 
 
+# Less simple.
+#
+class MemoryHeap(object):
+
+    def __init__(self):
+        self.current = 0
+        self.data = {}
+
+    def currentAddress(self):
+        return self.current
+
+    def allocate(self, size):
+        self.current += size
+
+    def store(self, address, value):
+        self.data[address] = value
+
+    def fetch(self, address):
+        return self.data[address]
+# end MemoryHeap
+
+
 # WordHandler
 # Sometimes we might have something handling the words for a while before the interpreter gets them.
 # E.g. a compiler, or a string definition.
@@ -58,6 +80,9 @@ class Interpreter(object):
 
         # We have a separate one for FPs.
         self.fp_stack = Stack()
+
+        # We can't use the stack for everything.
+        self.memoryHeap = MemoryHeap()
 
         # A dictionary of known words.
         self.dictionary = {}
@@ -364,6 +389,54 @@ class WordDefiner(WordHandler):
             self.buffer.append(wordStr)
             return False
 # end of How to define extra words.
+
+
+# Memory stuff
+#
+class AllocatedAddress(Word):
+    def __init__(self, address):
+        self.address = address
+    def execute(self, interp):
+        interp.stack.push(self.address)
+
+class CreateHandler(WordHandler):
+    def handleWord(self, wordStr, interp):
+        currentAddress = interp.memoryHeap.currentAddress()
+        allocated = AllocatedAddress(currentAddress)
+        interp.dictionary[wordStr] = allocated
+        # We don't want to read any more.
+        return True
+
+class CreateWord(Word):
+    def execute(self, interp):
+        interp.wordHandlers.push(CreateHandler())
+registerWord('CREATE', CreateWord())
+
+class Here(Word):
+    def execute(self, interp):
+        interp.stack.push(interp.memoryHeap.currentAddress())
+registerWord('HERE', Here())
+
+class Alloc(Word):
+    def execute(self, interp):
+        n = interp.stack.pop()
+        interp.memoryHeap.allocate(n)
+registerWord('ALLOT', Alloc())
+
+class Store(Word):
+    def execute(self, interp):
+        addr = interp.stack.pop()
+        n = interp.stack.pop()
+        interp.memoryHeap.store(addr, n)
+registerWord('!', Store())
+
+class Fetch(Word):
+    def execute(self, interp):
+        addr = interp.stack.pop()
+        v = interp.memoryHeap.fetch(addr)
+        interp.stack.push(v)
+registerWord('@', Fetch())        
+# end of Memory stuff
 
 
 if __name__ == '__main__':

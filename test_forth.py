@@ -47,11 +47,30 @@ class TestStack(unittest.TestCase):
             self.assertEquals(items[i], stack.pop())
             i -= 1
 
+
+class TestMemoryHeap(unittest.TestCase):
+
+    def testBasicAlloc(self):
+        mh = MemoryHeap()
+        addr = mh.currentAddress()
+        addr2 = mh.currentAddress()
+        # Shouldn't really change!
+        self.assertEquals(addr, addr2)
+
+        # Allocate 2 'bytes' to addr
+        mh.allocate(2)
+        addr2 = mh.currentAddress()
+        self.assertEquals(addr+2, addr2)
+        mh.store(addr, 13)
+        mh.store(addr2, 6757)
+        self.assertEquals(mh.fetch(addr), 13)
+        self.assertEquals(mh.fetch(addr2), 6757)
+
+
 class TestCaseWithInterp(unittest.TestCase):
     def setUp(self):
         self.interp = Interpreter()
         self.interp.output = LineReader()
-    
 
 
 class TestInterpAdding(TestCaseWithInterp):
@@ -164,6 +183,33 @@ class TestConversion(TestCaseWithInterp):
         self.assertEquals([5], self.interp.stack.copyOfItems())
         self.assertEquals([], self.interp.fp_stack.copyOfItems())
 
+
+
+class TestInterpMemory(TestCaseWithInterp):
+
+    def testMemory(self):
+        self.interp.processString('HERE . CR')
+        # I don't really know where it will start, but it should be a number.
+        addr = int(self.interp.output.readline())
+
+        self.interp.processString('CREATE X')
+        self.interp.processString('X . CR')
+        addrX = int(self.interp.output.readline())
+        self.assertEquals(addr, addrX)
+
+        self.interp.processString('CREATE Y')
+        self.interp.processString('Y . CR')
+        addrY = int(self.interp.output.readline())
+        self.assertEquals(addrX, addrY)
+
+        self.interp.processString('2 ALLOT')
+        self.interp.processString('HERE . CR')
+        addr = int(self.interp.output.readline())
+        self.assertEquals(addrX+2, addr)
+
+        self.interp.processString('137 X !')
+        self.interp.processString('X @ . CR')
+        self.assertEquals('137', self.interp.output.readline())
 
 
 
