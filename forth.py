@@ -120,18 +120,27 @@ class Interpreter(object):
         self.input  = sys.stdin
 
     def handleToken(self, token, fromInternal=False):
-        
+        # Has something claimed the token in advance?
         if (self.waitingForToken != None):
             if fromInternal == True:
+                # Right, if this is from an internal source (i.e. not the main input) then we simply have to wait
+                # until the waiting word gets the token it wants from the main input.
                 self.tokenQueue.push(token)
                 return
             else:
+                # Aha, we have a token. Now nothing should be waiting for the token.
                 waitingWord = self.waitingForToken
+
+                # We clear the waitingForToken variable here before passing it to the waitingWord because, as part
+                # of its handling of the token, the waitingWord could demand another token! (The greedy swine.)
                 self.waitingForToken = None
+
+                # Pass the fresh token to the word that was waiting on it. Note that it could ask for the next token!
                 waitingWord.handleToken(token, self)
                 self.processTokenQueue()
                 return
 
+        # Right, nothing is waiting on anything. Execute that damned token.
         if (token in self.dictionary):
             word = self.dictionary[token]
             word.execute(self)
@@ -139,7 +148,6 @@ class Interpreter(object):
             for i in parseDoubleInt(token):
                 self.stack.push(i)
         else:
-            
             try:
                 i = int(token)
                 self.stack.push(i)
@@ -147,20 +155,22 @@ class Interpreter(object):
                 # Actually, we might have a float...
                 f = float(token)
                 self.fp_stack.push(f)
-
+    
+    # Is anything waiting?
     def readyToExecute(self):
         return self.waitingForToken == None
 
+    # Go through any outstanding tokens.
     def processTokenQueue(self):
         while not self.tokenQueue.isEmpty():
             token = self.tokenQueue.pop()
             self.handleToken(token, True)
-
-            # This token may have put us in a state where we can't continue. How rude.
+            # This token may have put us in a state where we can't continue (e.g. by demanding the next word from the main input).
+            # How rude.
             if not self.readyToExecute():
                 break
 
-    def waitForToken(self, word):
+    def giveNextTokenTo(self, word):
         self.waitingForToken = word
 
     def addWord(self, symbol, word):
@@ -416,7 +426,7 @@ class Colon(Word):
     def execute(self, interp):
         # This means that we can't handle nested definitions, but I think that's valid.
         self.tokenBuffer = []
-        interp.waitForToken(self)
+        interp.giveNextTokenTo(self)
     def handleToken(self, token, interp):
         if token == ';':
             name = self.tokenBuffer[0]
@@ -424,7 +434,7 @@ class Colon(Word):
             interp.addWord(name, newWord)
         else:
             self.tokenBuffer.append(token)
-            interp.waitForToken(self)
+            interp.giveNextTokenTo(self)
 registerWord(':', Colon())
 # end of How to define extra words.
 
@@ -439,7 +449,7 @@ class AllocatedAddress(Word):
 
 class CreateWord(Word):
     def execute(self, interp):
-        interp.waitForToken(self)
+        interp.giveNextTokenTo(self)
     def handleToken(self, token, interp):
         currentAddress = interp.memoryHeap.currentAddress()
         allocated = AllocatedAddress(currentAddress)
