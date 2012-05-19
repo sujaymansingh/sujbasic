@@ -182,7 +182,7 @@ class Interpreter(object):
 # end Interpreter
 
 
-# Abstract class
+# Word
 #
 class Word(object):
     def execute(self, interp):
