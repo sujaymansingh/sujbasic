@@ -48,6 +48,31 @@ class TestStack(unittest.TestCase):
             i -= 1
 
 
+class TestQueue(unittest.TestCase):
+
+    def testBasicOps(self):
+        queue = Queue()
+        self.assertTrue(queue.isEmpty())
+
+        queue.push(10)
+        self.assertFalse(queue.isEmpty())
+
+        top1 = queue.top()
+        top2 = queue.pop()
+
+        self.assertEquals(10, top1)
+        self.assertEquals(10, top2)
+
+        items = [10, '32', 'sujay', Stack()]
+        for item in items:
+            queue.push(item)
+
+        i = 0
+        while (i < len(items)):
+            self.assertEquals(items[i], queue.pop())
+            i += 1
+
+
 class TestMemoryHeap(unittest.TestCase):
 
     def testBasicAlloc(self):
@@ -76,23 +101,23 @@ class TestCaseWithInterp(unittest.TestCase):
 class TestInterpAdding(TestCaseWithInterp):
 
     def testArithmetic(self):
-        self.interp.handleWord('5')
-        self.interp.handleWord('10')
-        self.interp.handleWord('+')
-        self.interp.handleWord('.')
-        self.interp.handleWord('CR')
+        self.interp.handleToken('5')
+        self.interp.handleToken('10')
+        self.interp.handleToken('+')
+        self.interp.handleToken('.')
+        self.interp.handleToken('CR')
 
         res = self.interp.output.readline()
         self.assertEquals('15', res)
 
-        self.interp.handleWord('15')
-        self.interp.handleWord('12')
-        self.interp.handleWord('*')
+        self.interp.handleToken('15')
+        self.interp.handleToken('12')
+        self.interp.handleToken('*')
         # Should have 180
-        self.interp.handleWord('10')
-        self.interp.handleWord('/')
-        self.interp.handleWord('.')
-        self.interp.handleWord('CR')
+        self.interp.handleToken('10')
+        self.interp.handleToken('/')
+        self.interp.handleToken('.')
+        self.interp.handleToken('CR')
         res = self.interp.output.readline()
         self.assertEquals('18', res)
 

@@ -1,5 +1,6 @@
 import sys
 import re
+import traceback
 
 MAX_UINT = 4294967296
 
@@ -28,6 +29,35 @@ class Stack(object):
     def top(self):
         return self.items[len(self.items)-1]
 # end Stack
+
+
+# This is also fairly simple :)
+#
+class Queue(object):
+
+    def __init__(self):
+        self.items = []
+
+    def push(self, item):
+        self.items.append(item)
+
+    def pop(self):
+        head = self.items[0]
+        self.items = self.items[1:]
+        return head
+
+    def copyOfItems(self):
+        result = []
+        for item in self.items:
+            result.append(item)
+        return result
+
+    def isEmpty(self):
+        return len(self.items) == 0
+
+    def top(self):
+        return self.items[0]
+# end Queue
 
 
 # Less simple.
@@ -92,12 +122,64 @@ class Interpreter(object):
 
         self.wordHandlers = Stack()
 
+        # Is there anything waiting on the next token?
+        self.waitingForToken = None
+        self.tokenQueue = Queue()
+
         # defaults?
         self.output = sys.stdout
         self.input  = sys.stdin
 
+    def handleToken(self, token, fromInternal=False):
+        
+        if (self.waitingForToken != None):
+            if fromInternal == True:
+                self.tokenQueue.push(token)
+                return
+            else:
+                waitingWord = self.waitingForToken
+                self.waitingForToken = None
+                waitingWord.handleToken(token, self)
+                self.processTokenQueue()
+                return
+
+        if (token in self.dictionary):
+            word = self.dictionary[token]
+            word.execute(self)
+        elif isDoubleInt(token):
+            for i in parseDoubleInt(token):
+                self.stack.push(i)
+        else:
+            
+            try:
+                i = int(token)
+                self.stack.push(i)
+            except ValueError:
+                # Actually, we might have a float...
+                f = float(token)
+                self.fp_stack.push(f)
+
+    def readyToExecute(self):
+        return self.waitingForToken == None
+
+    def processTokenQueue(self):
+        while not self.tokenQueue.isEmpty():
+            token = self.tokenQueue.pop()
+            self.handleToken(token, True)
+
+            # This token may have put us in a state where we can't continue. How rude.
+            if not self.readyToExecute():
+                break
+
+    def waitForToken(self, word):
+        self.waitingForToken = word
+
+    def addWord(self, symbol, word):
+        self.dictionary[symbol] = word
 
     def handleWord(self, wordStr):
+
+        # Is there anything waiting for a token?
 
         # Wait a second
         if not self.wordHandlers.isEmpty():
@@ -125,14 +207,16 @@ class Interpreter(object):
 
     def processString(self, line):
 
-        for word in line.split():
-            self.handleWord(word)
+        for token in line.split():
+            self.handleToken(token)
 
 
 # Abstract class
 #
 class Word(object):
     def execute(self, interp):
+        pass
+    def handleToken(self, token, interp):
         pass
 # end Word
 
@@ -364,30 +448,23 @@ class DefinedWord(Word):
     def __init__(self, wordsBuffer):
         self.wordsBuffer = wordsBuffer
     def execute(self, interp):
-        for word in self.wordsBuffer:
-            interp.handleWord(word)
+        for token in self.wordsBuffer:
+            interp.handleToken(token, True)
 
 class Colon(Word):
     def execute(self, interp):
-        tempWordDefiner = WordDefiner()
-        interp.wordHandlers.push(tempWordDefiner)
-registerWord(':', Colon())
-        
-class WordDefiner(WordHandler):
-
-    def __init__(self):
-        self.buffer = []
-
-    def handleWord(self, wordStr, interp):
-        if wordStr == ";":
-            name = self.buffer[0]
-            wordsBuffer = self.buffer[1:]
-            newlyDefinedWord = DefinedWord(wordsBuffer)
-            interp.dictionary[name] = newlyDefinedWord
-            return True
+        # This means that we can't handle nested definitions, but I think that's valid.
+        self.tokenBuffer = []
+        interp.waitForToken(self)
+    def handleToken(self, token, interp):
+        if token == ';':
+            name = self.tokenBuffer[0]
+            newWord = DefinedWord(self.tokenBuffer[1:])
+            interp.addWord(name, newWord)
         else:
-            self.buffer.append(wordStr)
-            return False
+            self.tokenBuffer.append(token)
+            interp.waitForToken(self)
+registerWord(':', Colon())
 # end of How to define extra words.
 
 
@@ -409,7 +486,11 @@ class CreateHandler(WordHandler):
 
 class CreateWord(Word):
     def execute(self, interp):
-        interp.wordHandlers.push(CreateHandler())
+        interp.waitForToken(self)
+    def handleToken(self, token, interp):
+        currentAddress = interp.memoryHeap.currentAddress()
+        allocated = AllocatedAddress(currentAddress)
+        interp.dictionary[token] = allocated
 registerWord('CREATE', CreateWord())
 
 class Here(Word):
@@ -453,5 +534,6 @@ if __name__ == '__main__':
                 interp.output.write(" ok\n")
             except Exception as e:
                 print 'Encountered erroe ',e
+                traceback.print_exc(file=sys.stdout)
         except EOFError:
             keepGoing = False
