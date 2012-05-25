@@ -236,6 +236,36 @@ class TestInterpMemory(TestCaseWithInterp):
         self.interp.processString('X @ . CR')
         self.assertEquals('137', self.interp.output.readline())
 
+class TestEquality(TestCaseWithInterp):
+
+    def testSimpleEquality(self):
+        self.interp.processString('132 131 = . CR')
+        self.assertNotEqual("0", self.interp.output.readline())
+        self.interp.processString('131 131 = . CR')
+        self.assertEquals("0", self.interp.output.readline())
+
+        self.interp.processString('132 131 > . CR')
+        self.assertEquals("0", self.interp.output.readline())
+        self.interp.processString('14 20 > . CR')
+        self.assertNotEquals("0", self.interp.output.readline())
+        self.interp.processString('131 131 > . CR')
+        self.assertNotEqual("0", self.interp.output.readline())
+
+        self.interp.processString('132 131 < . CR')
+        self.assertNotEquals("0", self.interp.output.readline())
+        self.interp.processString('14 20 < . CR')
+        self.assertEquals("0", self.interp.output.readline())
+        self.interp.processString('131 131 < . CR')
+        self.assertNotEqual("0", self.interp.output.readline())
+
+        self.interp.processString('132 131 < . CR')
+        self.assertNotEquals("0", self.interp.output.readline())
+        self.interp.processString('14 20 < . CR')
+        self.assertEquals("0", self.interp.output.readline())
+        self.interp.processString('131 131 < . CR')
+        self.assertNotEqual("0", self.interp.output.readline())
+
+
 
 
 def main():

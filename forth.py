@@ -483,6 +483,37 @@ registerWord('@', Fetch())
 # end of Memory stuff
 
 
+# Comparison
+class Equals(Word):
+    def execute(self, interp):
+        n2 = interp.stack.pop()
+        n1 = interp.stack.pop()
+        if (n2 == n1):
+            interp.stack.push(0)
+        else:
+            interp.stack.push(-1)
+registerWord('=', Equals())
+class MoreThan(Word):
+    def execute(self, interp):
+        n1 = interp.stack.pop()
+        n2 = interp.stack.pop()
+        if (n2 > n1):
+            interp.stack.push(0)
+        else:
+            interp.stack.push(-1)
+registerWord('>', MoreThan())
+class LessThan(Word):
+    def execute(self, interp):
+        n1 = interp.stack.pop()
+        n2 = interp.stack.pop()
+        if (n2 < n1):
+            interp.stack.push(0)
+        else:
+            interp.stack.push(-1)
+registerWord('<', LessThan())
+# end of Comparison
+
+
 if __name__ == '__main__':
 
     interp = Interpreter()
