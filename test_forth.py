@@ -236,6 +236,7 @@ class TestInterpMemory(TestCaseWithInterp):
         self.interp.processString('X @ . CR')
         self.assertEquals('137', self.interp.output.readline())
 
+
 class TestEquality(TestCaseWithInterp):
 
     def testSimpleEquality(self):
@@ -265,6 +266,19 @@ class TestEquality(TestCaseWithInterp):
         self.interp.processString('131 131 < . CR')
         self.assertNotEqual("0", self.interp.output.readline())
 
+
+class TestIf(TestCaseWithInterp):
+
+    def testSimpleIf(self):
+        self.interp.processString('0 IF 15 ELSE 20 THEN . CR')
+        self.assertEquals('15', self.interp.output.readline())
+
+    def testNestedIf(self):
+        cmd = 'IF DUP IF 1 ELSE 0 THEN ELSE 2 THEN . CR'
+        self.interp.processString('0 '+cmd)
+        self.assertEquals('1', self.interp.output.readline())
+        self.interp.processString('-1 '+cmd)
+        self.assertEquals('2', self.interp.output.readline())
 
 
 

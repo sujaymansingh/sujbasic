@@ -484,6 +484,7 @@ registerWord('@', Fetch())
 
 
 # Comparison
+#
 class Equals(Word):
     def execute(self, interp):
         n2 = interp.stack.pop()
@@ -513,6 +514,33 @@ class LessThan(Word):
 registerWord('<', LessThan())
 # end of Comparison
 
+
+# Conditional Stuff
+#
+class If(Word):
+    def execute(self, interp):
+        self.trueBranch = []
+        self.falseBranch = []
+        
+        
+    def handleToken(self, token, interp):
+        
+
+registerWord('IF', If())
+# end of Conditional
+
+    def execute(self, interp):
+        # This means that we can't handle nested definitions, but I think that's valid.
+        self.tokenBuffer = []
+        interp.giveNextTokenTo(self)
+    def handleToken(self, token, interp):
+        if token == ';':
+            name = self.tokenBuffer[0]
+            newWord = DefinedWord(self.tokenBuffer[1:])
+            interp.addWord(name, newWord)
+        else:
+            self.tokenBuffer.append(token)
+            interp.giveNextTokenTo(self)
 
 if __name__ == '__main__':
 
