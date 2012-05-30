@@ -113,15 +113,60 @@ class Interpreter(object):
 
         # Is there anything waiting on the next token?
         self.waitingForToken = None
-        self.tokenQueue = Queue()
+        self.waitingForStdinToken = None
+        self.batches = Stack()
 
         # defaults?
         self.output = sys.stdout
         self.input  = sys.stdin
 
-    def handleToken(self, token, fromInternal=False):
+    def handleItem(self, item):
+        if type(item) == str:
+            self.handleToken(item)
+        elif type(item) == Word:
+            item.execute(self)
+
+
+    def handleToken(self, token):
+
+        if self.waitingForStdinToken != None:
+            word = self.waitingForStdinToken
+            self.waitingForStdinToken = None
+            word.handleToken(token, self)
+
+            # Right, unless we are still waiting on something
+            if self.waitingForStdinToken == None and self.batches.isEmpty() == False:
+                # Right we were waiting on stdin, now we aren't.
+                # We should resume anything we paused.
+                self.batches.top().resume(self)
+            return
+
+        if self.waitingForToken != None:
+            word = self.waitingForToken
+            self.waitingForToken = None
+            word.handleToken(token, self)
+            return
+
+        # Right, nothing is waiting on anything. Execute that damned token.
+        if (token in self.dictionary):
+            word = self.dictionary[token]
+            word.execute(self)
+        elif isDoubleInt(token):
+            for i in parseDoubleInt(token):
+                self.stack.push(i)
+        else:
+            try:
+                i = int(token)
+                self.stack.push(i)
+            except ValueError:
+                # Actually, we might have a float...
+                f = float(token)
+                self.fp_stack.push(f)
+
+
+    def _handleToken(self, token, fromInternal=False):
         # Has something claimed the token in advance?
-        if (self.waitingForToken != None):
+        if (self.waitingForExternalToken != None):
             if fromInternal == True:
                 # Right, if this is from an internal source (i.e. not the main input) then we simply have to wait
                 # until the waiting word gets the token it wants from the main input.
@@ -160,18 +205,13 @@ class Interpreter(object):
     def readyToExecute(self):
         return self.waitingForToken == None
 
-    # Go through any outstanding tokens.
-    def processTokenQueue(self):
-        while not self.tokenQueue.isEmpty():
-            token = self.tokenQueue.pop()
-            self.handleToken(token, True)
-            # This token may have put us in a state where we can't continue (e.g. by demanding the next word from the main input).
-            # How rude.
-            if not self.readyToExecute():
-                break
-
     def giveNextTokenTo(self, word):
         self.waitingForToken = word
+
+    def waitForStdinToken(self, word):
+        if not self.batches.isEmpty():
+            self.batches.top().pause(self)
+        self.waitingForStdinToken = word
 
     def addWord(self, symbol, word):
         self.dictionary[symbol] = word
@@ -190,6 +230,31 @@ class Word(object):
     def handleToken(self, token, interp):
         pass
 # end Word
+
+
+# end Batch
+#
+class Batch(object):
+    def start(self, tokens, interp):
+        self.currentToken = 0
+        self.tokens = tokens
+        interp.batches.push(self)
+        self.resume(interp)
+    def pause(self, interp):
+        self.isPaused = True
+    def resume(self, interp):
+        self.isPaused = False
+        while self.currentToken < len(self.tokens):
+            interp.handleToken(self.tokens[self.currentToken])
+            self.currentToken += 1
+            # We might have been paused!
+            if self.isPaused == True:
+                break
+        # Have we reached the end?!
+        if self.currentToken <= len(self.tokens):
+            interp.batches.pop()
+# end Batch
+
 
 # Some simple arithmetic words.
 class Plus(Word):
@@ -251,7 +316,7 @@ registerWord('SWAP', Swap())
 
 class Drop(Word):
     def execute(self, interp):
-        self.interp.stack.pop()
+        interp.stack.pop()
 registerWord('DROP', Drop())
 
 class CR(Word):
@@ -419,8 +484,8 @@ class DefinedWord(Word):
     def __init__(self, tokensBuffer):
         self.tokensBuffer = tokensBuffer
     def execute(self, interp):
-        for token in self.tokensBuffer:
-            interp.handleToken(token, True)
+        batch = Batch()
+        batch.start(self.tokensBuffer, interp)
 
 class Colon(Word):
     def execute(self, interp):
@@ -449,7 +514,7 @@ class AllocatedAddress(Word):
 
 class CreateWord(Word):
     def execute(self, interp):
-        interp.giveNextTokenTo(self)
+        interp.waitForStdinToken(self)
     def handleToken(self, token, interp):
         currentAddress = interp.memoryHeap.currentAddress()
         allocated = AllocatedAddress(currentAddress)
@@ -490,57 +555,105 @@ class Equals(Word):
         n2 = interp.stack.pop()
         n1 = interp.stack.pop()
         if (n2 == n1):
-            interp.stack.push(0)
-        else:
             interp.stack.push(-1)
+        else:
+            interp.stack.push(0)
 registerWord('=', Equals())
 class MoreThan(Word):
     def execute(self, interp):
         n1 = interp.stack.pop()
         n2 = interp.stack.pop()
         if (n2 > n1):
-            interp.stack.push(0)
-        else:
             interp.stack.push(-1)
+        else:
+            interp.stack.push(0)
 registerWord('>', MoreThan())
 class LessThan(Word):
     def execute(self, interp):
         n1 = interp.stack.pop()
         n2 = interp.stack.pop()
         if (n2 < n1):
-            interp.stack.push(0)
-        else:
             interp.stack.push(-1)
+        else:
+            interp.stack.push(0)
 registerWord('<', LessThan())
 # end of Comparison
 
 
 # Conditional Stuff
 #
+class AnonymousIf(Word):
+    def __init__(self):
+        self.trueItems = []
+        self.falseItems = []
+        self.inTrueBranch = True
+    def execute(self, interp):
+        n = interp.stack.pop()
+        if n != 0:
+            Batch().start(self.trueItems, interp)
+        else:
+            Batch().start(self.falseItems, interp)
+    def handleElse(self):
+        self.inTrueBranch = False
+
+    def addToken(self, item):
+        if self.inTrueBranch:
+            self.trueItems.append(item)
+        else:
+            self.falseItems.append(item)
+    def handleItems(self, items, interp):
+        for item in items:
+            interp.handleItem(item)
+
 class If(Word):
     def execute(self, interp):
-        self.trueBranch = []
-        self.falseBranch = []
-        
-        
+        self.anonymousIf = AnonymousIf()
+        self.count = 1
+        interp.giveNextTokenTo(self)
+
     def handleToken(self, token, interp):
+        appendToken = True
+        claimNextToken = True
+
+        if token == 'THEN':
+            self.count -= 1
+            if self.count == 0:
+                appendToken = False
+                # We're done!
+                claimNextToken = False
+                # Time to execute!
+                self.anonymousIf.execute(interp)
+        elif token == 'IF':
+            self.count += 1
+        elif token == 'ELSE':
+            if self.count == 1:
+                self.anonymousIf.handleElse()
+                appendToken = False
         
+        if appendToken == True:
+            self.anonymousIf.addToken(token)
+        if claimNextToken == True:
+            interp.giveNextTokenTo(self)
+            
+
+    def pop(self, interp):
+        obj = self.objects.pop()
+        if not self.objects.isEmpty():
+            self.objects.top().addItem(obj)
+            interp.giveNextTokenTo(self)
+        else:
+            obj.execute(interp)
+    def push(self, obj, interp):
+        self.objects.push(obj)
+        interp.giveNextTokenTo(self)
+    def addToken(self, token, interp):
+        self.objects.top().addItem(token)
+        interp.giveNextTokenTo(self)
+
 
 registerWord('IF', If())
 # end of Conditional
 
-    def execute(self, interp):
-        # This means that we can't handle nested definitions, but I think that's valid.
-        self.tokenBuffer = []
-        interp.giveNextTokenTo(self)
-    def handleToken(self, token, interp):
-        if token == ';':
-            name = self.tokenBuffer[0]
-            newWord = DefinedWord(self.tokenBuffer[1:])
-            interp.addWord(name, newWord)
-        else:
-            self.tokenBuffer.append(token)
-            interp.giveNextTokenTo(self)
 
 if __name__ == '__main__':
 

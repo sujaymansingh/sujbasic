@@ -239,46 +239,58 @@ class TestInterpMemory(TestCaseWithInterp):
 
 class TestEquality(TestCaseWithInterp):
 
+    def checkStackFor(self, boolean):
+        val = self.interp.output.readline()
+        if boolean == True:
+            self.assertNotEqual("0", val)
+        else:
+            self.assertEqual("0", val)
+
     def testSimpleEquality(self):
         self.interp.processString('132 131 = . CR')
-        self.assertNotEqual("0", self.interp.output.readline())
+        self.checkStackFor(False)
         self.interp.processString('131 131 = . CR')
-        self.assertEquals("0", self.interp.output.readline())
+        self.checkStackFor(True)
 
         self.interp.processString('132 131 > . CR')
-        self.assertEquals("0", self.interp.output.readline())
+        self.checkStackFor(True)
         self.interp.processString('14 20 > . CR')
-        self.assertNotEquals("0", self.interp.output.readline())
+        self.checkStackFor(False)
         self.interp.processString('131 131 > . CR')
-        self.assertNotEqual("0", self.interp.output.readline())
+        self.checkStackFor(False)
 
         self.interp.processString('132 131 < . CR')
-        self.assertNotEquals("0", self.interp.output.readline())
+        self.checkStackFor(False)
         self.interp.processString('14 20 < . CR')
-        self.assertEquals("0", self.interp.output.readline())
+        self.checkStackFor(True)
+
         self.interp.processString('131 131 < . CR')
-        self.assertNotEqual("0", self.interp.output.readline())
+        self.checkStackFor(False)
 
         self.interp.processString('132 131 < . CR')
-        self.assertNotEquals("0", self.interp.output.readline())
+        self.checkStackFor(False)
         self.interp.processString('14 20 < . CR')
-        self.assertEquals("0", self.interp.output.readline())
+        self.checkStackFor(True)
         self.interp.processString('131 131 < . CR')
-        self.assertNotEqual("0", self.interp.output.readline())
+        self.checkStackFor(False)
 
 
 class TestIf(TestCaseWithInterp):
 
     def testSimpleIf(self):
-        self.interp.processString('0 IF 15 ELSE 20 THEN . CR')
+        self.interp.processString('1 IF 15 ELSE 20 THEN . CR')
         self.assertEquals('15', self.interp.output.readline())
 
     def testNestedIf(self):
-        cmd = 'IF DUP IF 1 ELSE 0 THEN ELSE 2 THEN . CR'
-        self.interp.processString('0 '+cmd)
-        self.assertEquals('1', self.interp.output.readline())
-        self.interp.processString('-1 '+cmd)
-        self.assertEquals('2', self.interp.output.readline())
+        signage = '%d DUP 0 = IF DROP 0 ELSE 0 > IF 1 ELSE -1 THEN THEN . CR'
+
+        self.interp.processString( signage % (0) )
+        self.assertEquals("0", self.interp.output.readline())
+
+        for num in [-1, -32, -242424, -9]:
+            self.interp.processString( signage % (num,) )
+            self.assertEquals("-1", self.interp.output.readline())
+
 
 
 
