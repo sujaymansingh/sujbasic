@@ -121,7 +121,7 @@ class Interpreter(object):
                 self.handleToken(token)
                 print 'after (%s), self.consumeUpto=(%s) ' % (token, self.consumeUpto())
                 if self.consumeUpto() != None:
-                    fullToken = tokeniser.returnUptoChar(self.consumeUpto())
+                    fullToken = tokens.returnUptoChar(self.consumeUpto())
                     self.handleConsumed(fullToken)
 # end Interpreter
 
