@@ -25,7 +25,7 @@ class TestChapter01(TestCaseWithInterp):
 
         self.interp.processString('THANKS CR')
         line = self.interp.output.readline()
-        self.assertEquals(line, " DEAR STEPHANIE , THANKS FOR THE BOOKENDS .")
+        self.assertEquals(line, "DEAR STEPHANIE, THANKS FOR THE BOOKENDS.")
 
 
     def test02(self):

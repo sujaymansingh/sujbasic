@@ -147,9 +147,58 @@ class Tokeniser(object):
             self.position += 1
 
         return result
-        
 
+    def readBackto(self, charType):
+        if self.sof():
+            return
+        c = self.line[self.position]
+        while not charType.matches(c):
+            self.position -= 1
+            if self.sof():
+                break
+            c = self.line[self.position]
+    # Start of file!
+    def sof(self):
+        return self.position == 0
+
+
+# Right this is cheating a bit (perhaps!).
+# This is a tokeniser that is aware of 'forth' data.
+# Namely, it knows that if there is a token '."' then the next
+# token must be upto the next '"' char.
+# All this so that you can do ." hello,   world" and not lose the multiple
+# spaces in the middle!!
 #
+class ForthTokeniser(Tokeniser):
+
+    def __init__(self, line):
+        Tokeniser.__init__(self, line)
+        self.readTillChar = None
+
+    def nextToken(self):
+        if self.readTillChar == None:
+            token = Tokeniser.nextToken(self)
+            if token == '."':
+                self.readTillChar = '"'
+
+                # Thing is, normally the tokeniser will read a token, then
+                # skip any whitespace until the next token. But a ." token is
+                # a bit special, we actually *want* that leading whitespace.
+                # So we read back to the first non-whitespace char.
+                self.readBackto(Quote())
+                # Seek past the quote.
+                self.position += 1
+                # But we still want to ignore the first whitespace char, as
+                # that is the token separator. So seek past again.
+                self.position += 1
+
+            return token
+        else:
+            char = self.readTillChar
+            self.readTillChar = None
+            return self.returnUptoChar(char)
+# end of ForthTokeniser
+
 
 MAX_UINT = 4294967296
 doubleRe = re.compile(r"^\d+\.\d*$")
