@@ -1,4 +1,5 @@
-from forth import *
+from forth.core import *
+from forth.util import *
 import unittest
 import random
 
