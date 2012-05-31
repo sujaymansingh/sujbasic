@@ -85,44 +85,6 @@ class Interpreter(object):
                 f = float(token)
                 self.fp_stack.push(f)
 
-
-    def _handleToken(self, token, fromInternal=False):
-        # Has something claimed the token in advance?
-        if (self.waitingForExternalToken != None):
-            if fromInternal == True:
-                # Right, if this is from an internal source (i.e. not the main input) then we simply have to wait
-                # until the waiting word gets the token it wants from the main input.
-                self.tokenQueue.push(token)
-                return
-            else:
-                # Aha, we have a token. Now nothing should be waiting for the token.
-                waitingWord = self.waitingForToken
-
-                # We clear the waitingForToken variable here before passing it to the waitingWord because, as part
-                # of its handling of the token, the waitingWord could demand another token! (The greedy swine.)
-                self.waitingForToken = None
-
-                # Pass the fresh token to the word that was waiting on it. Note that it could ask for the next token!
-                waitingWord.handleToken(token, self)
-                self.processTokenQueue()
-                return
-
-        # Right, nothing is waiting on anything. Execute that damned token.
-        if (token in self.dictionary):
-            word = self.dictionary[token]
-            word.execute(self)
-        elif isDoubleInt(token):
-            for i in parseDoubleInt(token):
-                self.stack.push(i)
-        else:
-            try:
-                i = int(token)
-                self.stack.push(i)
-            except ValueError:
-                # Actually, we might have a float...
-                f = float(token)
-                self.fp_stack.push(f)
-    
     # Is anything waiting?
     def readyToExecute(self):
         return self.waitingForToken == None
