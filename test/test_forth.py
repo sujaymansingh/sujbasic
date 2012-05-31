@@ -75,6 +75,40 @@ class TestMemoryHeap(unittest.TestCase):
         self.assertEquals(mh.fetch(addr2), 6757)
 
 
+class TestTokeniser(unittest.TestCase):
+
+    def checkTokens(self, tokens, tokeniser):
+        i = 0
+        while tokeniser.hasMoreTokens():
+            self.assertEquals(tokens[i], tokeniser.nextToken())
+            i += 1
+
+    def testTokensBasic(self):
+        line = "Now there are wrinkles  round my      baby's eyes"
+        tokeniser = Tokeniser(line)
+        tokens = ["Now", "there", "are", "wrinkles", "round", "my", "baby's", "eyes"]
+        self.checkTokens(tokens, tokeniser)
+
+        line = "    And she cries herself to sleep at night.    "
+        tokeniser = Tokeniser(line)
+        tokens = ["And", "she", "cries", "herself", "to", "sleep", "at", "night."]
+        self.checkTokens(tokens, tokeniser)
+
+    def testReadUpto(self):
+        line = 'When I come home the house is dark, she sobs "baby did you make it all right?"'
+        tokeniser = Tokeniser(line)
+        readTokens = []
+        token = ''
+        while tokeniser.hasMoreTokens() and token != 'sobs':
+            token = tokeniser.nextToken()
+            readTokens.append(token)
+
+        tokeniser.returnUptoChar('"')
+        readTokens.append(tokeniser.returnUptoChar('"'))
+
+        self.assertEquals(readTokens, ['When', 'I', 'come', 'home', 'the', 'house', 'is', 'dark,', 'she', 'sobs', 'baby did you make it all right?'])
+
+            
 class TestCaseWithInterp(unittest.TestCase):
     def setUp(self):
         self.interp = Interpreter()

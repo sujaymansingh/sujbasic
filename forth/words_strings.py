@@ -10,10 +10,14 @@ class StartLiteral(core.Word):
     # TODO: this should really be linked into to the tokeniser to avoid collapsing multiple spaces.
 
     def execute(self, interp):
-        self.buffer = ''
-        interp.giveNextTokenTo(self)
+        print 'executing ."',
+        interp.readUptoAndGiveTo('"', self)
+        print 'interp.consumeUpto=(%s) ' % (interp.consumeUpto())
 
     def handleToken(self, token, interp):
+        print 'just handled "%s"' % (token)
+        interp.output.write(token)
+        return
         reachedEnd = False
 
         if token == '"':

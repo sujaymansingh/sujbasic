@@ -36,6 +36,7 @@ class Interpreter(object):
         self.waitingForToken = None
         self.waitingForStdinToken = None
         self.batches = Stack()
+        self.consumeUptoChar = None
 
         # defaults?
         self.output = sys.stdout
@@ -97,12 +98,31 @@ class Interpreter(object):
             self.batches.top().pause(self)
         self.waitingForStdinToken = word
 
+    def readUptoAndGiveTo(self, char, handlerWord):
+        self.consumeUptoChar = char
+        self.consumeHandler  = handlerWord
+    def consumeUpto(self):
+        return self.consumeUptoChar
+    def handleConsumed(self, token):
+        word = self.consumeHandler
+        self.consumeHandler = None
+        self.consumeUptoChar = None
+        word.handleToken(token, self)
+
     def addWord(self, symbol, word):
         self.dictionary[symbol] = word
 
     def processString(self, line):
-        for token in line.split():
-            self.handleToken(token)
+        tokens = Tokeniser(line)
+
+        while tokens.hasMoreTokens():
+            token = tokens.nextToken()
+            if (token != ''):
+                self.handleToken(token)
+                print 'after (%s), self.consumeUpto=(%s) ' % (token, self.consumeUpto())
+                if self.consumeUpto() != None:
+                    fullToken = tokeniser.returnUptoChar(self.consumeUpto())
+                    self.handleConsumed(fullToken)
 # end Interpreter
 
 
