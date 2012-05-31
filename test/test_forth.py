@@ -1,26 +1,8 @@
 from forth.core import *
 from forth.util import *
+import util
 import unittest
 import random
-
-class LineReader(object):
-
-    def __init__(self):
-        self.lines = []
-        self.buffer = ''
-
-    def write(self, s):
-        for c in s:
-            if (c == '\n'):
-                self.lines.append(self.buffer)
-                self.buffer = ''
-            else:
-                self.buffer = self.buffer + c
-
-    def readline(self):
-        line = self.lines[0]
-        self.lines = self.lines[1:]
-        return line
 
 
 class TestStack(unittest.TestCase):
@@ -96,7 +78,7 @@ class TestMemoryHeap(unittest.TestCase):
 class TestCaseWithInterp(unittest.TestCase):
     def setUp(self):
         self.interp = Interpreter()
-        self.interp.output = LineReader()
+        self.interp.output = util.LineReader()
 
 
 class TestInterpAdding(TestCaseWithInterp):

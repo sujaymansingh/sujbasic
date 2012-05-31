@@ -1,7 +1,7 @@
 # Code for the forth interpreter!
 #
 
-__all__ = ['util', 'core', 'words_simple']
+__all__ = ['util', 'core', 'words_simple', 'words_strings']
 
 for submodule in __all__:
     # Just do a 'dummy' import of all non-util, non-core modules so that any modules that register words do so.
