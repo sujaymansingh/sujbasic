@@ -1,6 +1,41 @@
+# Simple stuff.
+#
+
 import core
 from core import Word, Batch
 from util import *
+
+
+class CR(Word):
+    "( -- ) Simply print out a carriage return"
+    def execute(self, interp):
+        interp.output.write('\n')
+core.registerWord('CR', CR())
+
+
+class Spaces(Word):
+    "(n -- ) Print out n spaces"
+    def execute(self, interp):
+        n = interp.stack.pop()
+        for i in range(n):
+            interp.output.write(' ')
+core.registerWord('SPACES', Spaces())
+
+
+class Space(Word):
+    "( -- ) Print out just one space."
+    def execute(self, interp):
+        interp.output.write(' ')
+core.registerWord('SPACE', Space())
+
+
+class Emit(Word):
+    "(c -- ) Emit the character from the stack."
+    def execute(self, interp):
+        n = interp.stack.pop()
+        interp.output.write(chr(n))
+core.registerWord('EMIT', Emit())
+
 
 class Dot(Word):
     def execute(self, interp):
@@ -33,11 +68,6 @@ class Drop(Word):
     def execute(self, interp):
         interp.stack.pop()
 core.registerWord('DROP', Drop())
-
-class CR(Word):
-    def execute(self, interp):
-        interp.output.write("\n")
-core.registerWord('CR', CR())
 
 
 # Floating point stuff.
