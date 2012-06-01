@@ -2,37 +2,6 @@ import core
 from core import Word, Batch
 from util import *
 
-# Some simple arithmetic words.
-class Plus(Word):
-    def execute(self, interp):
-        n1 = interp.stack.pop()
-        n2 = interp.stack.pop()
-        interp.stack.push(n2 + n1)
-core.registerWord('+', Plus())
-
-class Minus(Word):
-    def execute(self, interp):
-        n1 = interp.stack.pop()
-        n2 = interp.stack.pop()
-        interp.stack.push(n2 - n1)
-core.registerWord('-', Minus())
-
-class Multiply(Word):
-    def execute(self, interp):
-        n1 = interp.stack.pop()
-        n2 = interp.stack.pop()
-        interp.stack.push(n2 * n1)
-core.registerWord('*', Multiply())
-
-class Divide(Word):
-    def execute(self, interp):
-        n1 = interp.stack.pop()
-        n2 = interp.stack.pop()
-        interp.stack.push(n2 / n1)
-core.registerWord('/', Divide())
-
-# end simple arithmetic words.
-
 class Dot(Word):
     def execute(self, interp):
         v = interp.stack.pop()
