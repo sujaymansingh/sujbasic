@@ -165,6 +165,27 @@ class TestInterpAdding(TestCaseWithInterp):
         self.assertEquals('22', self.interp.output.readline())
 
 
+class TestStackStuff(TestCaseWithInterp):
+
+    def testStackManipulate(self):
+        self.interp.processString('1 5 10')
+
+        self.interp.processString('SWAP')
+        self.assertEquals([1, 10, 5], self.interp.stack.copyOfItems())
+        self.interp.processString('SWAP')
+        self.assertEquals([1, 5, 10], self.interp.stack.copyOfItems())
+
+        self.interp.processString('DUP')
+        self.assertEquals([1, 5, 10, 10], self.interp.stack.copyOfItems())
+        self.interp.processString('DROP')
+        self.assertEquals([1, 5, 10], self.interp.stack.copyOfItems())
+
+        self.interp.processString('ROT')
+        self.assertEquals([5, 10, 1], self.interp.stack.copyOfItems())
+
+        self.interp.processString('OVER')
+        self.assertEquals([5, 10, 1, 10], self.interp.stack.copyOfItems())
+
 class TestFloatingPoint(TestCaseWithInterp):
 
     def testRandomArithmetic(self):

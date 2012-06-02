@@ -23,18 +23,66 @@ core.registerWord('SPACES', Spaces())
 
 
 class Space(Word):
-    "( -- ) Print out just one space."
+    "( -- ) Print out just one space"
     def execute(self, interp):
         interp.output.write(' ')
 core.registerWord('SPACE', Space())
 
 
 class Emit(Word):
-    "(c -- ) Emit the character from the stack."
+    "(c -- ) Emit the character from the stack"
     def execute(self, interp):
         n = interp.stack.pop()
         interp.output.write(chr(n))
 core.registerWord('EMIT', Emit())
+
+
+class Swap(Word):
+    "(n1 n2 -- n2 n1) Swap the top pair of the stack"
+    def execute(self, interp):
+        n1 = interp.stack.pop()
+        n2 = interp.stack.pop()
+        interp.stack.push(n1)
+        interp.stack.push(n2)
+core.registerWord('SWAP', Swap())
+
+
+class Dup(Word):
+    "(n -- n n) Duplicate the top of the stack"
+    def execute(self, interp):
+        v = interp.stack.pop()
+        interp.stack.push(v)
+        interp.stack.push(v)
+core.registerWord('DUP', Dup())
+
+
+class Over(Word):
+    "(n1 n2 -- n1 n2 n1) Duplicate the 2nd top item and then on the top"
+    def execute(self, interp):
+        n2 = interp.stack.pop()
+        n1 = interp.stack.pop()
+        for n in [n1, n2, n1]:
+            interp.stack.push(n)
+core.registerWord('OVER', Over())
+
+
+class Rot(Word):
+    "(n1 n2 n3 -- n2 n3 n1) Rotate the top 3 items"
+    def execute(self, interp):
+        n3 = interp.stack.pop()
+        n2 = interp.stack.pop()
+        n1 = interp.stack.pop()
+        for n in [n2, n3, n1]:
+            interp.stack.push(n)
+core.registerWord('ROT', Rot())
+
+
+class Drop(Word):
+    "(n -- ) Discard the top of the stack"
+    def execute(self, interp):
+        interp.stack.pop()
+core.registerWord('DROP', Drop())
+
 
 
 class Dot(Word):
@@ -48,26 +96,6 @@ class DotS(Word):
         for item in interp.stack.copyOfItems():
             interp.output.write(str(item))
 core.registerWord('.S', DotS())
-
-class Dup(Word):
-    def execute(self, interp):
-        v = interp.stack.pop()
-        interp.stack.push(v)
-        interp.stack.push(v)
-core.registerWord('DUP', Dup())
-
-class Swap(Word):
-    def execute(self, interp):
-        n1 = self.interp.stack.pop()
-        n2 = self.interp.stack.pop()
-        self.interp.stack.push(n1)
-        self.interp.stack.push(n2)
-core.registerWord('SWAP', Swap())
-
-class Drop(Word):
-    def execute(self, interp):
-        interp.stack.pop()
-core.registerWord('DROP', Drop())
 
 
 # Floating point stuff.
