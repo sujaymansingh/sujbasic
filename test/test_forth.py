@@ -186,6 +186,7 @@ class TestStackStuff(TestCaseWithInterp):
         self.interp.processString('OVER')
         self.assertEquals([5, 10, 1, 10], self.interp.stack.copyOfItems())
 
+
 class TestFloatingPoint(TestCaseWithInterp):
 
     def testRandomArithmetic(self):
@@ -203,7 +204,7 @@ class TestFloatingPoint(TestCaseWithInterp):
                 self.assertTrue(diff < 1e-4)
 
 
-class TestDoubleInts(TestCaseWithInterp):
+class TestDouble(TestCaseWithInterp):
 
     def testParsing(self):
         testCases = []
@@ -234,6 +235,21 @@ class TestDoubleInts(TestCaseWithInterp):
                 self.interp.processString('D. CR')
                 res = self.interp.output.readline()
                 self.assertEquals(str(expected), res)
+
+    def testStackManipulate(self):
+        self.interp.processString('12 13 14 15')
+        self.interp.processString('2SWAP')
+        self.assertEquals(self.interp.stack.copyOfItems(), [14, 15, 12, 13])
+
+        self.interp.processString('2DUP')
+        self.assertEquals(self.interp.stack.copyOfItems(), [14, 15, 12, 13, 12, 13])
+
+        self.interp.processString('2DROP')
+        self.assertEquals(self.interp.stack.copyOfItems(), [14, 15, 12, 13])
+
+        self.interp.processString('2OVER')
+        self.assertEquals(self.interp.stack.copyOfItems(), [14, 15, 12, 13, 14, 15])
+
 
 
 
