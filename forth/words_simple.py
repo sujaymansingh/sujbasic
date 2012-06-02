@@ -302,3 +302,19 @@ class Fetch(Word):
         interp.stack.push(v)
 core.registerWord('@', Fetch())        
 # end of Memory stuff
+
+
+class Abort(Word):
+    """(f -- ) If the flag is true, print out the last word executed and then clear the stack."""
+    def execute(self, interp):
+        # TODO
+        pass
+core.registerWord('ABORT"', Abort())
+
+
+class CheckStackUnderflow(Word):
+    """( -- f) Returns true if a stack underflow condition has occurred."""
+    def execute(self, interp):
+        # TODO
+        pass
+core.registerWord('?STACK', CheckStackUnderflow())
