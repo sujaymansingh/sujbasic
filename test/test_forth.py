@@ -153,6 +153,17 @@ class TestInterpAdding(TestCaseWithInterp):
         res = self.interp.output.readline()
         self.assertEquals(res, '60')
 
+    def testMods(self):
+        self.interp.processString('22 4 /MOD . CR . CR')
+        self.assertEquals('5', self.interp.output.readline())
+        self.assertEquals('2', self.interp.output.readline())
+        self.interp.processString('123 17 /MOD . CR . CR')
+        self.assertEquals('7', self.interp.output.readline())
+        self.assertEquals('4', self.interp.output.readline())
+
+        self.interp.processString('1219 57 MOD . CR')
+        self.assertEquals('22', self.interp.output.readline())
+
 
 class TestFloatingPoint(TestCaseWithInterp):
 
