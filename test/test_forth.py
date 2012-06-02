@@ -340,7 +340,7 @@ class TestEquality(TestCaseWithInterp):
         self.checkStackFor(False)
 
 
-class TestIf(TestCaseWithInterp):
+class TestDecision(TestCaseWithInterp):
 
     def testSimpleIf(self):
         self.interp.processString('1 IF 15 ELSE 20 THEN . CR')
@@ -355,6 +355,33 @@ class TestIf(TestCaseWithInterp):
         for num in [-1, -32, -242424, -9]:
             self.interp.processString( signage % (num,) )
             self.assertEquals("-1", self.interp.output.readline())
+
+    def testZeros(self):
+        data = [
+            (0, '0=', 1), (133, '0=', 0), (-111, '0=', 0),
+            (0, '0<', 0), (133, '0<', 0), (-111, '0<', 1),
+            (0, '0>', 0), (133, '0>', 1), (-111, '0>', 0),
+            ]
+        for item in data:
+            self.interp.processString('%d %s . CR' % (item[0], item[1]))
+            self.assertEquals(str(item[2]), self.interp.output.readline())
+
+    def testNaryOperators(self):
+        data = [
+            ('1 NOT', 0), ('2 NOT', 0), ('0 NOT', 1), ('-12 NOT', 0),
+            ('0 0 OR', 0), ('1 0 OR', 1), ('0 1 OR', 1), ('1 1 OR', 1), ('1 -1 OR', 1), ('3332 0 OR', 1),
+            ('0 0 AND', 0), ('1 0 AND', 0), ('0 1 AND', 0), ('1 1 AND', 1), ('1 -1 AND', 1), ('3332 0 AND', 0),
+            ]
+        for item in data:
+            self.interp.processString('%s . CR' % (item[0]))
+            self.assertEquals(str(item[1]), self.interp.output.readline())
+
+        self.interp.processString('0 ?DUP')
+        # Shouldn't have duplicated, so the only thing still on the stack should be the original 0.
+        self.assertEquals(self.interp.stack.copyOfItems(), [0])
+
+        self.interp.processString('DROP 1 ?DUP -1 ?DUP')
+        self.assertEquals(self.interp.stack.copyOfItems(), [1, 1, -1, -1])
 
 
 

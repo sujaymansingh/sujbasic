@@ -99,3 +99,81 @@ class LessThan(core.Word):
         else:
             interp.stack.push(0)
 core.registerWord('<', LessThan())
+
+
+class EqualsZero(core.Word):
+    """(n -- f) Puts 1 on the stack if the TOS is zero, 0 otherwise."""
+    def execute(self, interp):
+        n = interp.stack.pop()
+        if (n == 0):
+            interp.stack.push(1)
+        else:
+            interp.stack.push(0)
+core.registerWord('0=', EqualsZero())
+
+
+class MoreThanZero(core.Word):
+    """(n -- f) Puts 1 on the stack if the TOS > zero, 0 otherwise."""
+    def execute(self, interp):
+        n = interp.stack.pop()
+        if (n > 0):
+            interp.stack.push(1)
+        else:
+            interp.stack.push(0)
+core.registerWord('0>', MoreThanZero())
+
+
+class LessThanZero(core.Word):
+    """(n -- f) Puts 1 on the stack if the TOS < zero, 0 otherwise."""
+    def execute(self, interp):
+        n = interp.stack.pop()
+        if (n < 0):
+            interp.stack.push(1)
+        else:
+            interp.stack.push(0)
+core.registerWord('0<', LessThanZero())
+
+
+class Not(core.Word):
+    """(f -- f) If TOS is 0, put 1 (else put 0). (Essentially same as 0=)"""
+    def execute(self, interp):
+        n = interp.stack.pop()
+        if n == 0:
+            interp.stack.push(1)
+        else:
+            interp.stack.push(0)
+core.registerWord('NOT', Not())
+
+
+class And(core.Word):
+    """(n1 n2 -- f) Logical And (Both must be non-zero)."""
+    def execute(self, interp):
+        n2 = interp.stack.pop()
+        n1 = interp.stack.pop()
+        v = 0
+        if n1 != 0 and n2 != 0:
+            v = 1
+        interp.stack.push(v)
+core.registerWord('AND', And())
+
+
+class Or(core.Word):
+    """(n1 n2 -- f) Logical Or (At least one must be non-zero)."""
+    def execute(self, interp):
+        n2 = interp.stack.pop()
+        n1 = interp.stack.pop()
+        v = 0
+        if n1 != 0 or n2 != 0:
+            v = 1
+        interp.stack.push(v)
+core.registerWord('OR', Or())
+
+
+class NonZeroDup(core.Word):
+    """(n -- n n) or (0 -- 0) Duplicates only if n is non-zero."""
+    def execute(self, interp):
+        n = interp.stack.pop()
+        interp.stack.push(n)
+        if n != 0:
+            interp.stack.push(n)
+core.registerWord('?DUP', NonZeroDup())
