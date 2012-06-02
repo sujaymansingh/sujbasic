@@ -71,3 +71,33 @@ class Chapter02(TestCaseWithInterp):
         # Book used : 2C6 OVER 9 * SWAP - * ;
         self.interp.processString('%d %d 2C6 . CR' % (a,b))
         self.assertEquals(str(res), self.interp.output.readline())
+
+    def test02(self):
+        self.interp.processString(': REVERSE.TOP.4 SWAP 2SWAP SWAP ;')
+        self.interp.processString('10 20 30 40 REVERSE.TOP.4')
+        self.assertEquals([40, 30, 20, 10], self.interp.stack.copyOfItems())
+        self.interp.processString('2DROP 2DROP')
+
+        self.interp.processString(': 3DUP DUP 2OVER ROT ;')
+        self.interp.processString('10 20 30 3DUP')
+        self.assertEquals([10, 20, 30, 10, 20, 30], self.interp.stack.copyOfItems())
+        self.interp.processString('2DROP 2DROP 2DROP')
+
+        # aa + ab + c  using  (a b c -- result)
+        a = 2; b = 3; c = 4; res = (a*a) + (a*b) + c
+        self.interp.processString(': QUADR SWAP ROT DUP DUP * ROT ROT * + + ;')
+        self.interp.processString('%d %d %d QUADR . CR' % (a, b, c))
+        self.assertEquals(str(res), self.interp.output.readline())
+
+        self.interp.processString(': CONVICTED-OF 0 ;')
+        self.interp.processString(': HOMICIDE   20 + ;')
+        self.interp.processString(': ARSON      10 + ;')
+        self.interp.processString(': BOOKMAKING  2 + ;')
+        self.interp.processString(': TAX-EVASION 5 + ;')
+        self.interp.processString(': WILL-SERVE . ." YEARS" ;')
+        self.interp.processString('CONVICTED-OF ARSON HOMICIDE TAX-EVASION WILL-SERVE CR')
+        self.assertEquals('35YEARS', self.interp.output.readline())
+
+        self.interp.processString(': EGG.CARTONS 12 /MOD . ."  CARTONS AND " . ."  EGGS" ;')
+        self.interp.processString('148 EGG.CARTONS CR')
+        self.assertEquals('12 CARTONS AND 4 EGGS', self.interp.output.readline())
