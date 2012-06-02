@@ -300,35 +300,3 @@ class Fetch(Word):
         interp.stack.push(v)
 core.registerWord('@', Fetch())        
 # end of Memory stuff
-
-
-# Comparison
-#
-class Equals(Word):
-    def execute(self, interp):
-        n2 = interp.stack.pop()
-        n1 = interp.stack.pop()
-        if (n2 == n1):
-            interp.stack.push(-1)
-        else:
-            interp.stack.push(0)
-core.registerWord('=', Equals())
-class MoreThan(Word):
-    def execute(self, interp):
-        n1 = interp.stack.pop()
-        n2 = interp.stack.pop()
-        if (n2 > n1):
-            interp.stack.push(-1)
-        else:
-            interp.stack.push(0)
-core.registerWord('>', MoreThan())
-class LessThan(Word):
-    def execute(self, interp):
-        n1 = interp.stack.pop()
-        n2 = interp.stack.pop()
-        if (n2 < n1):
-            interp.stack.push(-1)
-        else:
-            interp.stack.push(0)
-core.registerWord('<', LessThan())
-# end of Comparison
