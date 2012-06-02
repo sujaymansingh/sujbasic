@@ -1,6 +1,5 @@
 # Simple stuff.
 #
-
 import core
 from core import Word, Batch
 from util import *
