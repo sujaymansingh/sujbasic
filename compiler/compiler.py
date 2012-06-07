@@ -1,9 +1,9 @@
 """
-Yeah.
+The compiler object.
 """
 
 import lang
-
+import data_types
 
 class Compiler(object):
 
@@ -92,8 +92,8 @@ class Compiler(object):
             targetType = sourceType1
             targetOperator = None
 
-        if (type(sourceType1) == ForthDataTypeInteger and type(sourceType2) == ForthDataTypeInteger):
-            targetType = ForthDataTypeInteger()
+        if (type(sourceType1) == data_types.Integer and type(sourceType2) == data_types.Integer):
+            targetType = data_types.Integer()
             if operator == lang.TermOperatorMultiply:
                 targetOperator = '*'
             elif operator == lang.TermOperatorDivide:
@@ -105,11 +105,11 @@ class Compiler(object):
 
 
         elif (
-            (type(sourceType1) == ForthDataTypeInteger and type(sourceType2) == ForthDataTypeFloat) or 
-            (type(sourceType1) == ForthDataTypeFloat and type(sourceType2) == ForthDataTypeInteger) or
-            (type(sourceType1) == ForthDataTypeFloat and type(sourceType2) == ForthDataTypeFloat)
+            (type(sourceType1) == data_types.Integer and type(sourceType2) == data_types.Float) or 
+            (type(sourceType1) == data_types.Float and type(sourceType2) == data_types.Integer) or
+            (type(sourceType1) == data_types.Float and type(sourceType2) == data_types.Float)
             ):
-            targetType = ForthDataTypeFloat()
+            targetType = data_types.Float()
             if operator == lang.TermOperatorMultiply:
                 targetOperator = 'F*'
             elif operator == lang.TermOperatorDivide:
@@ -147,80 +147,23 @@ class Compiler(object):
 
     def toCompilerTypeObjFor(self, langDataType):
         if langDataType == lang.DataTypeInteger:
-            return ForthDataTypeInteger()
+            return data_types.Integer()
         elif langDataType == lang.DataTypeFloat:
-            return ForthDataTypeFloat()
+            return data_types.Float()
         elif langDataType == lang.DataTypeString:
-            return ForthDataTypeString()
+            return data_types.String()
 
     def compileStatementPrint(self, stmt):
         result = self.compileExpression(stmt.expression)
         # What about the type eh?
         typeObj = self.typeObjFor(stmt.expression)
         # Now simply add a "." to print!
-        if type(typeObj) == ForthDataTypeInteger:
+        if type(typeObj) == data_types.Integer:
             result.append('.')
-        elif type(typeObj) == ForthDataTypeFloat:
+        elif type(typeObj) == data_types.Float:
             result.append('F.')
         result.append('CR')
         return result
 
     def codeToStr(self, pcode):
         return " ".join(pcode)
-
-# Data Types!
-#
-#
-class ForthDataType(object):
-    def convertTo(self, otherForthDataType):
-        pass
-class ForthDataTypeInteger(ForthDataType):
-    def convertTo(self, otherForthDataType):
-        if type(otherForthDataType) == ForthDataTypeInteger:
-            # Nothing to do or see here!
-            return []
-        elif type(otherForthDataType) == ForthDataTypeDoubleInteger:
-            # If the existing int is 'n', then we want 'n 0' on the stack.
-            return ['S>D']
-        elif type(otherForthDataType) == ForthDataTypeFloat:
-            return ['S>D', 'D>F']
-        elif type(otherForthDataType) == ForthDataTypeString:
-            return ['TODO']
-# end of ForthDataTypeInteger
-class ForthDataTypeDoubleInteger(ForthDataType):
-    def convertTo(self, otherForthDataType):
-        if type(otherForthDataType) == ForthDataTypeInteger:
-            return ['D>S']
-        elif type(otherForthDataType) == ForthDataTypeDoubleInteger:
-            # Nothing to do or see here!
-            return ['']
-        elif type(otherForthDataType) == ForthDataTypeFloat:
-            return ['D>F']
-        elif type(otherForthDataType) == ForthDataTypeString:
-            return ['TODO']
-# end of ForthDataTypeDoubleInteger
-class ForthDataTypeFloat(ForthDataType):
-    def convertTo(self, otherForthDataType):
-        if type(otherForthDataType) == ForthDataTypeInteger:
-            return ['F>D', 'D>S']
-        elif type(otherForthDataType) == ForthDataTypeDoubleInteger:
-            return ['F>D']
-        elif type(otherForthDataType) == ForthDataTypeFloat:
-            # Nothing to do or see here!
-            return []
-        elif type(otherForthDataType) == ForthDataTypeString:
-            return ['TODO']
-# end of ForthDataTypeFloat
-class ForthDataTypeString(ForthDataType):
-    def convertTo(self, otherForthDataType):
-        if type(otherForthDataType) == ForthDataTypeInteger:
-            return ['TODO']
-        elif type(otherForthDataType) == ForthDataTypeDoubleInteger:
-            return ['TODO']
-        elif type(otherForthDataType) == ForthDataTypeFloat:
-            return ['TODO']
-        elif type(otherForthDataType) == ForthDataTypeString:
-            # Nothing to do or see here!
-            return []
-# end of ForthDataTypeFloat
-
