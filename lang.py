@@ -108,8 +108,18 @@ class Expression(object):
 # end of Expressions
 
 
+# Statement
+#
+class Statement(object):
+
+    # A default of 1.
+    def blockLevel(self):
+        return 0
+# end of Statement
+
+
 # Print Statement
-class StatementPrint(object):
+class StatementPrint(Statement):
 
     def __init__(self, expression):
         self.expression = expression

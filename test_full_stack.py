@@ -1,6 +1,6 @@
 import parser
-import compiler
-import forth
+import compiler.compiler
+import forth.core
 import unittest
 import sys
 
@@ -24,10 +24,24 @@ import sys
 #        self.interp.processString(pcodeStr)
 
 
+class CodeHandler(object):
+    def __init__(self):
+        self.buffer = ''
+    def handleCode(self, code):
+        self.buffer += ' '.join(code)
+        self.buffer += ' '
+    def popCode(self):
+        result = self.buffer.strip()
+        self.buffer = ''
+        return result
+
+
 def run(line):
+    codeHandler = CodeHandler()
+
     _parser   = parser.BasicParser()
-    _compiler = compiler.Compiler()
-    _interp   = forth.Interpreter()
+    _compiler = compiler.compiler.Compiler(codeHandler)
+    _interp   = forth.core.Interpreter()
 
     print "Compiling '%s'..." % (line)
 
@@ -35,14 +49,14 @@ def run(line):
     i = 0
     for stmt in stmts:
         print "Statement %d parses to '%s'" % (i, stmt)
+
+        _compiler.handleStatement(stmt)
+        code = codeHandler.popCode()
         
-        code = _compiler.codeToStr(_compiler.compileStatementPrint(stmt))
         print "Statement %d compiles to '%s'" % (i, code)
 
         print "About to run through interpreter..."
         _interp.processString(code)
-
-
 
 
 if __name__ == '__main__':

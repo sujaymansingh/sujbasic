@@ -5,7 +5,72 @@ The compiler object.
 import lang
 import data_types
 
+
+# A placeholder object.
+#
+class CompiledStatement(object):
+
+    def __init__(self, interactiveCode, statementCode):
+        self.interactiveCode = interactiveCode
+        self.statementCode   = statementCode
+# end of CompiledStatement
+
+
 class Compiler(object):
+
+    def __init__(self, codeHandler):
+        self.interactiveBuffer = []
+        self.statementBuffer   = []
+        self.blockLevel        = 0
+        self.codeHandler       = codeHandler
+
+    def handleStatement(self, statement):
+        compiledStatement = self.compileStatement(statement)
+
+        # If we are at the base level, then we start the statement.
+        # We're at a new statement, so clear the buffers.
+        if self.blockLevel == 0:
+            self.codeHandler.handleCode([':',  '__stmt'])
+            self.interactiveBuffer = []
+            self.statementBuffer   = []
+
+        # Now add to the buffers.
+        self.interactiveBuffer.extend(compiledStatement.interactiveCode)
+        self.statementBuffer.extend(compiledStatement.statementCode)
+
+        self.blockLevel += statement.blockLevel()
+
+        # Can we finish off the statement?
+        if self.blockLevel == 0:
+            self.codeHandler.handleCode(self.statementBuffer)
+            self.codeHandler.handleCode([';'])
+
+            self.codeHandler.handleCode(self.interactiveBuffer)
+
+            # And execute it immediately.
+            self.codeHandler.handleCode(['__stmt'])
+    # end of handleStatement
+
+    def compileStatement(self, stmt):
+        if type(stmt) == lang.StatementPrint:
+            return self.compileStatementPrint(stmt)
+            
+
+    # end of compileStatement
+
+    def compileStatementPrint(self, stmt):
+        result = self.compileExpression(stmt.expression)
+        # What about the type eh?
+        typeObj = self.typeObjFor(stmt.expression)
+        # Now simply add a "." to print!
+        if type(typeObj) == data_types.Integer:
+            result.append('.')
+        elif type(typeObj) == data_types.Float:
+            result.append('F.')
+        result.append('CR')
+
+        return CompiledStatement([], result)
+    # end of compileStatementPrint
 
 
     def compileFactor(self, factor, targetType=None):
@@ -152,18 +217,6 @@ class Compiler(object):
             return data_types.Float()
         elif langDataType == lang.DataTypeString:
             return data_types.String()
-
-    def compileStatementPrint(self, stmt):
-        result = self.compileExpression(stmt.expression)
-        # What about the type eh?
-        typeObj = self.typeObjFor(stmt.expression)
-        # Now simply add a "." to print!
-        if type(typeObj) == data_types.Integer:
-            result.append('.')
-        elif type(typeObj) == data_types.Float:
-            result.append('F.')
-        result.append('CR')
-        return result
 
     def codeToStr(self, pcode):
         return " ".join(pcode)
