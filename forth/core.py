@@ -54,6 +54,9 @@ class Interpreter(object):
 
     def handleToken(self, token):
 
+        # Forth is case-insensitive why not.
+        token = token.upper()
+
         if self.waitingForStdinToken != None:
             word = self.waitingForStdinToken
             self.waitingForStdinToken = None
