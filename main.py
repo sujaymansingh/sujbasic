@@ -30,6 +30,9 @@ def compile(input):
         for stmt in stmts:
             _compiler.handleStatement(stmt)
 
+    # Now that we're done...
+    codeHandler.handleCode(['BYE'])
+
     return codeHandler.popCode()
 # end of compile
 
