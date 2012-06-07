@@ -42,6 +42,8 @@ class Interpreter(object):
         self.output = sys.stdout
         self.input  = sys.stdin
 
+        self.exitFlag = False
+    # end of __init__
 
     def handleItem(self, item):
         if type(item) == str:
@@ -119,6 +121,9 @@ class Interpreter(object):
             token = tokens.nextToken()
             if (token != ''):
                 self.handleToken(token)
+
+    def needsToExit(self):
+        return self.exitFlag
 # end Interpreter
 
 

@@ -318,3 +318,10 @@ class CheckStackUnderflow(Word):
         # TODO
         pass
 core.registerWord('?STACK', CheckStackUnderflow())
+
+
+class Bye(Word):
+    """( -- ) Simply stop the interpreter."""
+    def execute(self, interp):
+        interp.exitFlag = True
+core.registerWord('BYE', Bye())

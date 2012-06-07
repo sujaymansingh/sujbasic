@@ -16,6 +16,8 @@ if __name__ == '__main__':
             try:
                 interp.processString(line)
                 interp.output.write(" ok\n")
+
+                keepGoing = not interp.needsToExit()
             except Exception as e:
                 print 'Encountered erroe ',e
                 traceback.print_exc(file=sys.stdout)
