@@ -153,6 +153,39 @@ class TestInterpAdding(TestCaseWithInterp):
         res = self.interp.output.readline()
         self.assertEquals(res, '60')
 
+    def testMods(self):
+        self.interp.processString('22 4 /MOD . CR . CR')
+        self.assertEquals('5', self.interp.output.readline())
+        self.assertEquals('2', self.interp.output.readline())
+        self.interp.processString('123 17 /MOD . CR . CR')
+        self.assertEquals('7', self.interp.output.readline())
+        self.assertEquals('4', self.interp.output.readline())
+
+        self.interp.processString('1219 57 MOD . CR')
+        self.assertEquals('22', self.interp.output.readline())
+
+
+class TestStackStuff(TestCaseWithInterp):
+
+    def testStackManipulate(self):
+        self.interp.processString('1 5 10')
+
+        self.interp.processString('SWAP')
+        self.assertEquals([1, 10, 5], self.interp.stack.copyOfItems())
+        self.interp.processString('SWAP')
+        self.assertEquals([1, 5, 10], self.interp.stack.copyOfItems())
+
+        self.interp.processString('DUP')
+        self.assertEquals([1, 5, 10, 10], self.interp.stack.copyOfItems())
+        self.interp.processString('DROP')
+        self.assertEquals([1, 5, 10], self.interp.stack.copyOfItems())
+
+        self.interp.processString('ROT')
+        self.assertEquals([5, 10, 1], self.interp.stack.copyOfItems())
+
+        self.interp.processString('OVER')
+        self.assertEquals([5, 10, 1, 10], self.interp.stack.copyOfItems())
+
 
 class TestFloatingPoint(TestCaseWithInterp):
 
@@ -171,7 +204,7 @@ class TestFloatingPoint(TestCaseWithInterp):
                 self.assertTrue(diff < 1e-4)
 
 
-class TestDoubleInts(TestCaseWithInterp):
+class TestDouble(TestCaseWithInterp):
 
     def testParsing(self):
         testCases = []
@@ -202,6 +235,21 @@ class TestDoubleInts(TestCaseWithInterp):
                 self.interp.processString('D. CR')
                 res = self.interp.output.readline()
                 self.assertEquals(str(expected), res)
+
+    def testStackManipulate(self):
+        self.interp.processString('12 13 14 15')
+        self.interp.processString('2SWAP')
+        self.assertEquals(self.interp.stack.copyOfItems(), [14, 15, 12, 13])
+
+        self.interp.processString('2DUP')
+        self.assertEquals(self.interp.stack.copyOfItems(), [14, 15, 12, 13, 12, 13])
+
+        self.interp.processString('2DROP')
+        self.assertEquals(self.interp.stack.copyOfItems(), [14, 15, 12, 13])
+
+        self.interp.processString('2OVER')
+        self.assertEquals(self.interp.stack.copyOfItems(), [14, 15, 12, 13, 14, 15])
+
 
 
 
@@ -292,7 +340,7 @@ class TestEquality(TestCaseWithInterp):
         self.checkStackFor(False)
 
 
-class TestIf(TestCaseWithInterp):
+class TestDecision(TestCaseWithInterp):
 
     def testSimpleIf(self):
         self.interp.processString('1 IF 15 ELSE 20 THEN . CR')
@@ -307,6 +355,33 @@ class TestIf(TestCaseWithInterp):
         for num in [-1, -32, -242424, -9]:
             self.interp.processString( signage % (num,) )
             self.assertEquals("-1", self.interp.output.readline())
+
+    def testZeros(self):
+        data = [
+            (0, '0=', 1), (133, '0=', 0), (-111, '0=', 0),
+            (0, '0<', 0), (133, '0<', 0), (-111, '0<', 1),
+            (0, '0>', 0), (133, '0>', 1), (-111, '0>', 0),
+            ]
+        for item in data:
+            self.interp.processString('%d %s . CR' % (item[0], item[1]))
+            self.assertEquals(str(item[2]), self.interp.output.readline())
+
+    def testNaryOperators(self):
+        data = [
+            ('1 NOT', 0), ('2 NOT', 0), ('0 NOT', 1), ('-12 NOT', 0),
+            ('0 0 OR', 0), ('1 0 OR', 1), ('0 1 OR', 1), ('1 1 OR', 1), ('1 -1 OR', 1), ('3332 0 OR', 1),
+            ('0 0 AND', 0), ('1 0 AND', 0), ('0 1 AND', 0), ('1 1 AND', 1), ('1 -1 AND', 1), ('3332 0 AND', 0),
+            ]
+        for item in data:
+            self.interp.processString('%s . CR' % (item[0]))
+            self.assertEquals(str(item[1]), self.interp.output.readline())
+
+        self.interp.processString('0 ?DUP')
+        # Shouldn't have duplicated, so the only thing still on the stack should be the original 0.
+        self.assertEquals(self.interp.stack.copyOfItems(), [0])
+
+        self.interp.processString('DROP 1 ?DUP -1 ?DUP')
+        self.assertEquals(self.interp.stack.copyOfItems(), [1, 1, -1, -1])
 
 
 

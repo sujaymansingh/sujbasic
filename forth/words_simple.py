@@ -1,74 +1,102 @@
+# Simple stuff.
+#
 import core
 from core import Word, Batch
 from util import *
 
-# Some simple arithmetic words.
-class Plus(Word):
+
+class CR(Word):
+    """( -- ) Simply print out a carriage return."""
+    def execute(self, interp):
+        interp.output.write('\n')
+core.registerWord('CR', CR())
+
+
+class Spaces(Word):
+    """(n -- ) Print out n spaces."""
+    def execute(self, interp):
+        n = interp.stack.pop()
+        for i in range(n):
+            interp.output.write(' ')
+core.registerWord('SPACES', Spaces())
+
+
+class Space(Word):
+    """( -- ) Print out just one space."""
+    def execute(self, interp):
+        interp.output.write(' ')
+core.registerWord('SPACE', Space())
+
+
+class Emit(Word):
+    """(c -- ) Emit the character from the stack."""
+    def execute(self, interp):
+        n = interp.stack.pop()
+        interp.output.write(chr(n))
+core.registerWord('EMIT', Emit())
+
+
+class Swap(Word):
+    """(n1 n2 -- n2 n1) Swap the top pair of the stack."""
     def execute(self, interp):
         n1 = interp.stack.pop()
         n2 = interp.stack.pop()
-        interp.stack.push(n2 + n1)
-core.registerWord('+', Plus())
+        interp.stack.push(n1)
+        interp.stack.push(n2)
+core.registerWord('SWAP', Swap())
 
-class Minus(Word):
-    def execute(self, interp):
-        n1 = interp.stack.pop()
-        n2 = interp.stack.pop()
-        interp.stack.push(n2 - n1)
-core.registerWord('-', Minus())
-
-class Multiply(Word):
-    def execute(self, interp):
-        n1 = interp.stack.pop()
-        n2 = interp.stack.pop()
-        interp.stack.push(n2 * n1)
-core.registerWord('*', Multiply())
-
-class Divide(Word):
-    def execute(self, interp):
-        n1 = interp.stack.pop()
-        n2 = interp.stack.pop()
-        interp.stack.push(n2 / n1)
-core.registerWord('/', Divide())
-
-# end simple arithmetic words.
-
-class Dot(Word):
-    def execute(self, interp):
-        v = interp.stack.pop()
-        interp.output.write(str(v))
-core.registerWord('.', Dot())
-
-class DotS(Word):
-    def execute(self, interp):
-        for item in interp.stack.copyOfItems():
-            interp.output.write(str(item))
-core.registerWord('.S', DotS())
 
 class Dup(Word):
+    """(n -- n n) Duplicate the top of the stack."""
     def execute(self, interp):
         v = interp.stack.pop()
         interp.stack.push(v)
         interp.stack.push(v)
 core.registerWord('DUP', Dup())
 
-class Swap(Word):
+
+class Over(Word):
+    """(n1 n2 -- n1 n2 n1) Duplicate the 2nd top item and then on the top."""
     def execute(self, interp):
-        n1 = self.interp.stack.pop()
-        n2 = self.interp.stack.pop()
-        self.interp.stack.push(n1)
-        self.interp.stack.push(n2)
-core.registerWord('SWAP', Swap())
+        n2 = interp.stack.pop()
+        n1 = interp.stack.pop()
+        for n in [n1, n2, n1]:
+            interp.stack.push(n)
+core.registerWord('OVER', Over())
+
+
+class Rot(Word):
+    """(n1 n2 n3 -- n2 n3 n1) Rotate the top 3 items."""
+    def execute(self, interp):
+        n3 = interp.stack.pop()
+        n2 = interp.stack.pop()
+        n1 = interp.stack.pop()
+        for n in [n2, n3, n1]:
+            interp.stack.push(n)
+core.registerWord('ROT', Rot())
+
 
 class Drop(Word):
+    """(n -- ) Discard the top of the stack."""
     def execute(self, interp):
         interp.stack.pop()
 core.registerWord('DROP', Drop())
 
-class CR(Word):
+
+class Dot(Word):
+    """(n -- ) Prints the top item of the stack."""
     def execute(self, interp):
-        interp.output.write("\n")
-core.registerWord('CR', CR())
+        v = interp.stack.pop()
+        interp.output.write(str(v))
+core.registerWord('.', Dot())
+
+
+class DotS(Word):
+    """( -- ) Prints all items on the stack."""
+    def execute(self, interp):
+        for item in interp.stack.copyOfItems():
+            interp.output.write(str(item))
+core.registerWord('.S', DotS())
 
 
 # Floating point stuff.
@@ -276,108 +304,17 @@ core.registerWord('@', Fetch())
 # end of Memory stuff
 
 
-# Comparison
-#
-class Equals(Word):
+class Abort(Word):
+    """(f -- ) If the flag is true, print out the last word executed and then clear the stack."""
     def execute(self, interp):
-        n2 = interp.stack.pop()
-        n1 = interp.stack.pop()
-        if (n2 == n1):
-            interp.stack.push(-1)
-        else:
-            interp.stack.push(0)
-core.registerWord('=', Equals())
-class MoreThan(Word):
+        # TODO
+        pass
+core.registerWord('ABORT"', Abort())
+
+
+class CheckStackUnderflow(Word):
+    """( -- f) Returns true if a stack underflow condition has occurred."""
     def execute(self, interp):
-        n1 = interp.stack.pop()
-        n2 = interp.stack.pop()
-        if (n2 > n1):
-            interp.stack.push(-1)
-        else:
-            interp.stack.push(0)
-core.registerWord('>', MoreThan())
-class LessThan(Word):
-    def execute(self, interp):
-        n1 = interp.stack.pop()
-        n2 = interp.stack.pop()
-        if (n2 < n1):
-            interp.stack.push(-1)
-        else:
-            interp.stack.push(0)
-core.registerWord('<', LessThan())
-# end of Comparison
-
-
-# Conditional Stuff
-#
-class AnonymousIf(Word):
-    def __init__(self):
-        self.trueItems = []
-        self.falseItems = []
-        self.inTrueBranch = True
-    def execute(self, interp):
-        n = interp.stack.pop()
-        if n != 0:
-            Batch().start(self.trueItems, interp)
-        else:
-            Batch().start(self.falseItems, interp)
-    def handleElse(self):
-        self.inTrueBranch = False
-
-    def addToken(self, item):
-        if self.inTrueBranch:
-            self.trueItems.append(item)
-        else:
-            self.falseItems.append(item)
-    def handleItems(self, items, interp):
-        for item in items:
-            interp.handleItem(item)
-
-class If(Word):
-    def execute(self, interp):
-        self.anonymousIf = AnonymousIf()
-        self.count = 1
-        interp.giveNextTokenTo(self)
-
-    def handleToken(self, token, interp):
-        appendToken = True
-        claimNextToken = True
-
-        if token == 'THEN':
-            self.count -= 1
-            if self.count == 0:
-                appendToken = False
-                # We're done!
-                claimNextToken = False
-                # Time to execute!
-                self.anonymousIf.execute(interp)
-        elif token == 'IF':
-            self.count += 1
-        elif token == 'ELSE':
-            if self.count == 1:
-                self.anonymousIf.handleElse()
-                appendToken = False
-        
-        if appendToken == True:
-            self.anonymousIf.addToken(token)
-        if claimNextToken == True:
-            interp.giveNextTokenTo(self)
-            
-
-    def pop(self, interp):
-        obj = self.objects.pop()
-        if not self.objects.isEmpty():
-            self.objects.top().addItem(obj)
-            interp.giveNextTokenTo(self)
-        else:
-            obj.execute(interp)
-    def push(self, obj, interp):
-        self.objects.push(obj)
-        interp.giveNextTokenTo(self)
-    def addToken(self, token, interp):
-        self.objects.top().addItem(token)
-        interp.giveNextTokenTo(self)
-
-
-core.registerWord('IF', If())
-# end of Conditional
+        # TODO
+        pass
+core.registerWord('?STACK', CheckStackUnderflow())

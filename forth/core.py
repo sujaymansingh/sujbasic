@@ -113,16 +113,12 @@ class Interpreter(object):
         self.dictionary[symbol] = word
 
     def processString(self, line):
-        tokens = Tokeniser(line)
+        tokens = ForthTokeniser(line)
 
         while tokens.hasMoreTokens():
             token = tokens.nextToken()
             if (token != ''):
                 self.handleToken(token)
-                print 'after (%s), self.consumeUpto=(%s) ' % (token, self.consumeUpto())
-                if self.consumeUpto() != None:
-                    fullToken = tokens.returnUptoChar(self.consumeUpto())
-                    self.handleConsumed(fullToken)
 # end Interpreter
 
 
