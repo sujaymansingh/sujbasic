@@ -27,10 +27,9 @@ class Compiler(object):
     def handleStatement(self, statement):
         compiledStatement = self.compileStatement(statement)
 
-        # If we are at the base level, then we start the statement.
-        # We're at a new statement, so clear the buffers.
+        # If we're at the base level then we're at a new statement.
+        # So clear the buffers.
         if self.blockLevel == 0:
-            self.codeHandler.handleCode([':',  '__stmt'])
             self.interactiveBuffer = []
             self.statementBuffer   = []
 
@@ -42,10 +41,11 @@ class Compiler(object):
 
         # Can we finish off the statement?
         if self.blockLevel == 0:
+            self.codeHandler.handleCode(self.interactiveBuffer)
+
+            self.codeHandler.handleCode([':',  '__stmt'])
             self.codeHandler.handleCode(self.statementBuffer)
             self.codeHandler.handleCode([';'])
-
-            self.codeHandler.handleCode(self.interactiveBuffer)
 
             # And execute it immediately.
             self.codeHandler.handleCode(['__stmt'])
@@ -54,6 +54,8 @@ class Compiler(object):
     def compileStatement(self, stmt):
         if type(stmt) == lang.StatementPrint:
             return self.compileStatementPrint(stmt)
+        elif type(stmt) == lang.StatementLet:
+            return self.compileStatementLet(stmt)
             
 
     # end of compileStatement
@@ -71,6 +73,13 @@ class Compiler(object):
 
         return CompiledStatement([], result)
     # end of compileStatementPrint
+
+    def compileStatementLet(self, stmt):
+        interactiveCode = ['CREATE', stmt.varname, '1', 'ALLOT']
+        statementCode   = self.compileExpression(stmt.expression)
+        statementCode.extend([stmt.varname, '!'])
+        return CompiledStatement(interactiveCode, statementCode)
+    # end of compileStatementLet
 
 
     def compileFactor(self, factor, targetType=None):
@@ -92,7 +101,7 @@ class Compiler(object):
                 result.append('TODO')
 
         elif factor.factorType == lang.FactorTypeVariable:
-            result.append('TODO')
+            result.extend([value, '@'])
 
         elif factor.factorType == lang.FactorTypeExpression:
             result.extend(self.compileExpression(factor.value))
@@ -194,7 +203,8 @@ class Compiler(object):
             if item.factorType == lang.FactorTypeLiteral:
                 return self.toCompilerTypeObjFor(item.value.dataType)
             elif item.factorType == lang.FactorTypeVariable:
-                return None
+                # For now assume integer :(
+                return data_types.Integer()
             elif item.factorType == lang.FactorTypeExpression:
                 return self.typeObjFor(item.value)
 

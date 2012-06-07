@@ -127,3 +127,15 @@ class StatementPrint(Statement):
     def __str__(self):
         return 'StatementPrint( %s )' % (self.expression)
 # end of Print Statement
+
+
+# Let Statement
+class StatementLet(Statement):
+
+    def __init__(self, varname, expression):
+        self.varname    = varname
+        self.expression = expression
+
+    def __str__(self):
+        return 'StatementLet(%s, %s)' % (self.varname, self.expression)
+# end of Let Statement

@@ -38,7 +38,8 @@ class BasicLexer(object):
         'for'      : 'FOR',
         'print'    : 'PRINT',
         'to'       : 'TO',
-        'next'     : 'NEXT'
+        'next'     : 'NEXT',
+        'let'      : 'LET'
     }
 
     # Define our list of tokens.
@@ -60,7 +61,8 @@ class BasicLexer(object):
         'FOR',
         'TO',
         'NEXT',
-        'PRINT'
+        'PRINT',
+        'LET'
     )
 
     # The simple literals.
@@ -157,6 +159,10 @@ class BasicParser(object):
     def p_statement_print(self, p):
         'statement : PRINT expression'
         p[0] = lang.StatementPrint(p[2])
+
+    def p_statement_let(self, p):
+        'statement : LET VARNAME EQUALS expression'
+        p[0] = lang.StatementLet(p[2], p[4])
 
     def p_statement_for(self, p):
         'statement : FOR VARNAME EQUALS NUMBER TO NUMBER CR statements NEXT CR'

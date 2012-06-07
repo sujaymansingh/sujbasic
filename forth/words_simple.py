@@ -274,7 +274,7 @@ class CreateWord(Word):
     def handleToken(self, token, interp):
         currentAddress = interp.memoryHeap.currentAddress()
         allocated = AllocatedAddress(currentAddress)
-        interp.dictionary[token] = allocated
+        interp.addWord(token, allocated)
 core.registerWord('CREATE', CreateWord())
 
 class Here(Word):

@@ -36,29 +36,30 @@ class CodeHandler(object):
         return result
 
 
-def run(line):
+def run(lines):
     codeHandler = CodeHandler()
 
     _parser   = parser.BasicParser()
     _compiler = compiler.compiler.Compiler(codeHandler)
     _interp   = forth.core.Interpreter()
 
-    print "Compiling '%s'..." % (line)
-
-    stmts = _parser.parse(line + '\n')
-    i = 0
-    for stmt in stmts:
-        print "Statement %d parses to '%s'" % (i, stmt)
-
-        _compiler.handleStatement(stmt)
-        code = codeHandler.popCode()
-        
-        print "Statement %d compiles to '%s'" % (i, code)
-
-        print "About to run through interpreter..."
-        _interp.processString(code)
-
+    for line in lines:
+        print "Compiling '%s'..." % (line)
+    
+        stmts = _parser.parse(line + '\n')
+        i = 0
+        for stmt in stmts:
+            print "Statement %d parses to '%s'" % (i, stmt)
+    
+            _compiler.handleStatement(stmt)
+            code = codeHandler.popCode()
+            
+            print "Statement %d compiles to '%s'" % (i, code)
+    
+            print "About to run through interpreter..."
+            _interp.processString(code)
+    
+            i += 1
 
 if __name__ == '__main__':
-    for line in sys.argv[1:]:
-        run(line)
+    run(sys.argv[1:])
