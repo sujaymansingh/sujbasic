@@ -7,7 +7,7 @@ import unittest
 class TestFactor(unittest.TestCase):
 
     def setUp(self):
-        self.compiler = compiler.compiler.Compiler()
+        self.compiler = compiler.compiler.Compiler(None)
 
     def createLiteral(self, val):
         return Factor(FactorTypeLiteral, createTypedValue(val))
