@@ -1,5 +1,6 @@
 import parser
 import compiler.compiler
+import compiler.output
 import forth.core
 import unittest, sys
 from optparse import OptionParser
@@ -17,9 +18,9 @@ class CodeHandler(object):
 
 
 def compile(input):
-    codeHandler = CodeHandler()
-    _parser   = parser.BasicParser()
-    _compiler = compiler.compiler.Compiler(codeHandler)
+    codeOutput = compiler.output.OutputStatic()
+    _parser    = parser.BasicParser()
+    _compiler  = compiler.compiler.Compiler(codeOutput)
 
     lines = input.readlines()
 
@@ -30,10 +31,7 @@ def compile(input):
         for stmt in stmts:
             _compiler.handleStatement(stmt)
 
-    # Now that we're done...
-    codeHandler.handleCode(['BYE'])
-
-    return codeHandler.popCode()
+    return codeOutput.generateEntireCode()
 # end of compile
 
 

@@ -9,47 +9,66 @@ import data_types
 # A placeholder object.
 #
 class CompiledStatement(object):
-
-    def __init__(self, interactiveCode, statementCode):
-        self.interactiveCode = interactiveCode
-        self.statementCode   = statementCode
+    def __init__(self, variables, statementCode):
+        self.variables     = variables
+        self.statementCode = statementCode
 # end of CompiledStatement
+
+
+class Variable(object):
+    def __init__(self, basicName, dataType):
+        self.basicName = basicName
+        self.dataType = dataType
+        # We won't know this yet...
+        self.forthName = ''
+# end of Variable
 
 
 class Compiler(object):
 
-    def __init__(self, codeHandler):
-        self.interactiveBuffer = []
+    def __init__(self, codeOutput):
         self.statementBuffer   = []
         self.blockLevel        = 0
-        self.codeHandler       = codeHandler
+        self.codeOutput        = codeOutput
+        self.variables         = {}
+        self.variableIndex     = 0
+    # end of __init__
+
+    def registerVariable(self, variable):
+        forthName = '__varname_%d' % (self.variableIndex)
+        variable.forthName = forthName
+        self.variables[variable.basicName] = variable
+        self.variableIndex += 1
+        return variable
+    # end of registerVariable
+
+    def variableForBasicName(self, basicName):
+        return self.variables[basicName]
+    # end of variableForBasicName
 
     def handleStatement(self, statement):
         compiledStatement = self.compileStatement(statement)
 
-        # If we're at the base level then we're at a new statement.
-        # So clear the buffers.
+        for variable in compiledStatement.variables:
+            # TODO, not always 1!!
+            code = ['CREATE', variable.forthName, '1', 'ALLOT']
+            self.codeOutput.addHeaderCode(code)
+
         if self.blockLevel == 0:
-            self.interactiveBuffer = []
-            self.statementBuffer   = []
+            self.codeOutput.beginStatement()
 
         # Now add to the buffers.
-        self.interactiveBuffer.extend(compiledStatement.interactiveCode)
-        self.statementBuffer.extend(compiledStatement.statementCode)
-
         self.blockLevel += statement.blockLevel()
+        self.codeOutput.addBodyCode(compiledStatement.statementCode)
 
         # Can we finish off the statement?
         if self.blockLevel == 0:
-            self.codeHandler.handleCode(self.interactiveBuffer)
-
-            self.codeHandler.handleCode([':',  '__stmt'])
-            self.codeHandler.handleCode(self.statementBuffer)
-            self.codeHandler.handleCode([';'])
-
-            # And execute it immediately.
-            self.codeHandler.handleCode(['__stmt'])
+            self.codeOutput.endStatement()
     # end of handleStatement
+
+    def endProgram(self):
+        pass
+    # end of endProgram
 
     def compileStatement(self, stmt):
         if type(stmt) == lang.StatementPrint:
@@ -75,10 +94,11 @@ class Compiler(object):
     # end of compileStatementPrint
 
     def compileStatementLet(self, stmt):
-        interactiveCode = ['CREATE', stmt.varname, '1', 'ALLOT']
+        variable = self.registerVariable(Variable(stmt.varname, self.typeObjFor(stmt.expression)))
+
         statementCode   = self.compileExpression(stmt.expression)
-        statementCode.extend([stmt.varname, '!'])
-        return CompiledStatement(interactiveCode, statementCode)
+        statementCode.extend([variable.forthName, '!'])
+        return CompiledStatement([variable], statementCode)
     # end of compileStatementLet
 
 
@@ -101,7 +121,8 @@ class Compiler(object):
                 result.append('TODO')
 
         elif factor.factorType == lang.FactorTypeVariable:
-            result.extend([value, '@'])
+            variable = self.variableForBasicName(value)
+            result.extend([variable.forthName, '@'])
 
         elif factor.factorType == lang.FactorTypeExpression:
             result.extend(self.compileExpression(factor.value))
