@@ -133,3 +133,15 @@ class Max(core.Word):
         n1 = interp.stack.pop()
         interp.stack.push(max(n1, n2))
 core.registerWord('MAX', Max())
+
+
+class StarSlash(core.Word):
+    "(n1 n2 n3 -- n-result) Multiplies and *then* divides. Uses a 32-bit intermediate."
+    def execute(self, interp):
+        n3 = interp.stack.pop()
+        n2 = interp.stack.pop()
+        n1 = interp.stack.pop()
+        # TODO: The whole 32 bit thing.
+        result = (n1*n2) / n3
+        interp.stack.push(result)
+core.registerWord('*/', StarSlash())
