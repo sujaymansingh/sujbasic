@@ -5,7 +5,6 @@ The compiler object.
 import lang
 import data_types
 
-
 # A placeholder object.
 #
 class CompiledStatement(object):
@@ -15,6 +14,8 @@ class CompiledStatement(object):
 # end of CompiledStatement
 
 
+#
+#
 class Variable(object):
     def __init__(self, basicName, dataType):
         self.basicName = basicName
@@ -101,84 +102,104 @@ class Compiler(object):
         return CompiledStatement([variable], statementCode)
     # end of compileStatementLet
 
-
-    def compileFactor(self, factor, targetType=None):
-        "What we want to do is simply take a factor and compile it, but also make sure it is the correct type"
+    # Take a simple factor and compile it.
+    #
+    def compileFactor(self, factor, convertResultToType=None):
+        "What we want to do is simply take a factor and compile it, but also make sure it is the correct type."
         value = factor.value
 
         # The resulting forth code for this...
         result = []
 
+        # This is the simplest of all! A literal number or string is just the
+        # number again in forth.
         if factor.factorType == lang.FactorTypeLiteral:
             if value.dataType == lang.DataTypeInteger:
+                # Place the number token onto the stack.
                 result.append(str(value.value))
             elif value.dataType == lang.DataTypeFloat:
-                # Unfortunately Forth treats numbers with full stops in them as double value ints
-                # rather than floats. So we have to represent this in scientific notation.
-                # Also, use a ridiculous specifier (.20) otherwise we'll lose too much precision.
+                # Unfortunately Forth treats numbers with full stops in them
+                # as double value ints # rather than floats. So we have to
+                # represent this in scientific notation.
+                # Also, use a ridiculous specifier (.20) otherwise we'll
+                # lose too much precision.
                 result.append('%.20e' % (value.value))
             elif value.dataType == lang.DataTypeString:
                 result.append('TODO')
 
+        # This is less simple. We need to grab the value and push it onto the
+        # stack.
         elif factor.factorType == lang.FactorTypeVariable:
             variable = self.variableForBasicName(value)
+            if variable == None:
+                raise Exception('No variable found for %s')
+            # Fetch the value of the variable.
             result.extend([variable.forthName, '@'])
 
+        # Just compile the expression.
         elif factor.factorType == lang.FactorTypeExpression:
             result.extend(self.compileExpression(factor.value))
 
         # Now do any converting that we need.
-        if targetType != None:
+        if convertResultToType != None:
             sourceType = self.typeObjFor(factor)
-            result.extend(sourceType.convertTo(targetType))
+            result.extend(sourceType.convertTo(convertResultToType))
 
         return result
     # end of compileFactor
 
-
-    def compileTerm(self, term, targetType=None):
-        combineDetails = self.combineDetails(term.primaryFactor, term.operator, term.secondaryFactor)
-        (targetOperator, termTargetType) = combineDetails
+    # A term is factor op factor. But crucially we need to work out how to
+    # combine the terms.
+    #
+    def compileTerm(self, term, convertResultToType=None):
+        targetOperator, termType = self.howToCombine(term.primaryFactor, term.operator, term.secondaryFactor)
         result = []
 
-        result.extend(self.compileFactor(term.primaryFactor, termTargetType))
+        # There is always one factor. We convert it to the type of this term
+        # so that the target operator can work on homogenous factors.
+        result.extend(self.compileFactor(term.primaryFactor, termType))
+
         if (term.secondaryFactor != None):
-            result.extend(self.compileFactor(term.secondaryFactor, termTargetType))
+            result.extend(self.compileFactor(term.secondaryFactor, termType))
+
         if (targetOperator != None):
             result.append(targetOperator)
 
-        # Now do any converting that we need.
-        if targetType != None:
+        # Now do any converting that we need. Note that this is separate to the
+        # termType. The termType is just for making sure that the factors are
+        # homogenous so they can be used with the operator.
+        if convertResultToType != None:
             sourceType = self.typeObjFor(term)
-            result.extend(sourceType.convertTo(targetType))
+            result.extend(sourceType.convertTo(convertResultToType))
 
         return result
     # end of compileTerm
 
-
-    def compileExpression(self, expression, targetType=None):
-        combineDetails = self.combineDetails(expression.primaryTerm, expression.operator, expression.secondaryTerm)
-        (targetOperator, expressionTargetType) = combineDetails
+    # We handle expressions very similar to the way we handle terms.
+    #
+    def compileExpression(self, expression, convertResultToType=None):
+        targetOperator, expressionType = self.howToCombine(expression.primaryTerm, expression.operator, expression.secondaryTerm)
         result = []
 
-        result.extend(self.compileTerm(expression.primaryTerm, expressionTargetType))
+        result.extend(self.compileTerm(expression.primaryTerm, expressionType))
+
         if (expression.secondaryTerm != None):
-            result.extend(self.compileTerm(expression.secondaryTerm, expressionTargetType))
+            result.extend(self.compileTerm(expression.secondaryTerm, expressionType))
+
         if (targetOperator != None):
             result.append(targetOperator)
 
         # Now do any converting that we need.
-        if targetType != None:
+        if convertResultToType != None:
             sourceType = self.typeObjFor(expression)
-            result.extend(sourceType.convertTo(targetType))
+            result.extend(sourceType.convertTo(convertResultToType))
 
         return result
     # end of compileExpression
 
-
-
-
-    def combineDetails(self, primary, operator, secondary):
+    #
+    #
+    def howToCombine(self, primary, operator, secondary):
         sourceType1 = self.typeObjFor(primary)
         sourceType2 = self.typeObjFor(secondary)
 
@@ -198,7 +219,6 @@ class Compiler(object):
             elif operator == lang.ExpressionOperatorMinus:
                 targetOperator = '-'
 
-
         elif (
             (type(sourceType1) == data_types.Integer and type(sourceType2) == data_types.Float) or 
             (type(sourceType1) == data_types.Float and type(sourceType2) == data_types.Integer) or
@@ -215,14 +235,13 @@ class Compiler(object):
                 targetOperator = 'F-'
 
         return (targetOperator, targetType)
-    # end of combineDetails
-
+    # end of howToCombine
 
     def typeObjFor(self, item):
         # Factors might be simple...
         if type(item) == lang.Factor:
             if item.factorType == lang.FactorTypeLiteral:
-                return self.toCompilerTypeObjFor(item.value.dataType)
+                return self.compilerTypeObjFor(item.value.dataType)
             elif item.factorType == lang.FactorTypeVariable:
                 # For now assume integer :(
                 return data_types.Integer()
@@ -230,18 +249,15 @@ class Compiler(object):
                 return self.typeObjFor(item.value)
 
         elif type(item) == lang.Term:
-            (targetOperator, targetTypeObj) = self.combineDetails(item.primaryFactor, item.operator, item.secondaryFactor)
+            targetOperator, targetTypeObj = self.howToCombine(item.primaryFactor, item.operator, item.secondaryFactor)
             return targetTypeObj
 
         elif type(item) == lang.Expression:
-            (targetOperator, targetTypeObj) = self.combineDetails(item.primaryTerm, item.operator, item.secondaryTerm)
+            targetOperator, targetTypeObj = self.howToCombine(item.primaryTerm, item.operator, item.secondaryTerm)
             return targetTypeObj
-            
     # end of typeObjFor
 
-
-
-    def toCompilerTypeObjFor(self, langDataType):
+    def compilerTypeObjFor(self, langDataType):
         if langDataType == lang.DataTypeInteger:
             return data_types.Integer()
         elif langDataType == lang.DataTypeFloat:
