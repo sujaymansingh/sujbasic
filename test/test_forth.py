@@ -148,6 +148,37 @@ class TestInterpAdding(TestCaseWithInterp):
                 res = self.interp.output.readline()
                 self.assertEquals(str(expected), res)
 
+    def testOneTwo(self):
+        for i in range(100):
+            r = random.randint(-1000, 1000)
+            self.interp.processString('%d 1+ . CR' % (r))
+            self.assertEquals(str(r+1), self.interp.output.readline())
+            self.interp.processString('%d 1- . CR' % (r))
+            self.assertEquals(str(r-1), self.interp.output.readline())
+            self.interp.processString('%d 2+ . CR' % (r))
+            self.assertEquals(str(r+2), self.interp.output.readline())
+            self.interp.processString('%d 2- . CR' % (r))
+            self.assertEquals(str(r-2), self.interp.output.readline())
+
+            # If we're dividing, we don't want any zeros.
+            while r == 0: r = random.randint(-1000, 1000)
+            self.interp.processString('%d 2/ . CR' % (r))
+            self.assertEquals(str(r/2), self.interp.output.readline())
+
+    def testMoreArithmetic(self):
+        self.interp.processString('-5 ABS . CR')
+        self.assertEquals('5', self.interp.output.readline())
+        self.interp.processString('8 ABS . CR')
+        self.assertEquals('8', self.interp.output.readline())
+        self.interp.processString('-5 NEGATE . CR')
+        self.assertEquals('5', self.interp.output.readline())
+        self.interp.processString('8 NEGATE . CR')
+        self.assertEquals('-8', self.interp.output.readline())
+        self.interp.processString('2 31 MIN . CR')
+        self.assertEquals('2', self.interp.output.readline())
+        self.interp.processString('12 -31 MAX . CR')
+        self.assertEquals('12', self.interp.output.readline())
+
     def testArithmeticWithString(self):
         self.interp.processString('13 3 - 6 * . CR')
         res = self.interp.output.readline()
