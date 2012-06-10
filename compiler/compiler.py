@@ -114,7 +114,13 @@ class Compiler(object):
         variable = self.registerVariable(Variable(stmt.varname, self.typeObjFor(stmt.expression)))
 
         statementCode   = self.compileExpression(stmt.expression)
-        statementCode.extend([variable.forthName, '!'])
+        statementCode.extend([variable.forthName])
+
+        if type(variable.dataType) == data_types.Integer:
+            statementCode.append('!')
+        elif type(variable.dataType) == data_types.Float:
+            statementCode.append('F!')
+
         return CompiledStatement([variable], statementCode)
     # end of compileStatementLet
 
