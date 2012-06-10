@@ -136,6 +136,14 @@ class Chapter04(TestCaseWithInterp):
             self.interp.processString('%s WITHIN . CR' % (numbers))
             self.assertEquals(expected, self.interp.output.readline())
 
+
+class Chapter05(TestCaseWithInterp):
+
+    def testReturnStackSimple(self):
+        self.interp.processString(': QUADRATIC >R SWAP ROT I * + R> * + ;')
+        self.interp.processString('2 7 9 3 QUADRATIC . CR')
+        self.assertEquals('48', self.interp.output.readline())
+
                                                                                                                                                                                                                                                                                                                                                                 
             
 
