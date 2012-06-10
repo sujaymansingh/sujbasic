@@ -145,3 +145,17 @@ class StarSlash(core.Word):
         result = (n1*n2) / n3
         interp.stack.push(result)
 core.registerWord('*/', StarSlash())
+
+
+class StarSlashMod(core.Word):
+    "(u1 u2 u3 -- u-rem u-quot) Multiplies and *then* divides. Returns the quotient and the remainder."
+    def execute(self, interp):
+        u3 = interp.stack.pop()
+        u2 = interp.stack.pop()
+        u1 = interp.stack.pop()
+        u = u1 * u2
+        rem  = u % u3
+        quot = u / u3
+        interp.stack.push(rem)
+        interp.stack.push(quot)
+core.registerWord('*/MOD', StarSlashMod())
