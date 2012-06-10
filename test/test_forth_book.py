@@ -101,3 +101,42 @@ class Chapter02(TestCaseWithInterp):
         self.interp.processString(': EGG.CARTONS 12 /MOD . ."  CARTONS AND " . ."  EGGS" ;')
         self.interp.processString('148 EGG.CARTONS CR')
         self.assertEquals('12 CARTONS AND 4 EGGS', self.interp.output.readline())
+# end of Chapter02
+
+
+class Chapter04(TestCaseWithInterp):
+
+    def test01(self):
+        for item in [(1, '1'), (0, '0'), (200, '1')]:
+            num, expected = item
+            self.interp.processString('%d 0= NOT . CR' % num)
+            self.assertEquals(expected, self.interp.output.readline())
+
+        # artichoke
+
+        self.interp.processString(': CARD 18 < IF ." UNDER AGE" ELSE ." ALCOHOLIC BEVERAGES PERMITTED" THEN ;')
+        for i in range(1, 100):
+            age = random.randint(10, 80)
+            self.interp.processString('%d CARD CR' % (age))
+            expected = 'UNDER AGE' if age < 18 else 'ALCOHOLIC BEVERAGES PERMITTED'
+            self.assertEquals(expected, self.interp.output.readline())
+
+        self.interp.processString(': SIGN.TEST DUP 0 = IF DROP ." ZERO" ELSE 0 > IF ." POSITIVE" ELSE ." NEGATIVE" THEN THEN ;')
+        for item in [(1, 'POSITIVE'), (0, 'ZERO'), (-44, 'NEGATIVE'), (12, 'POSITIVE'), (-1, 'NEGATIVE')]:
+            num, expected = item
+            self.interp.processString('%d SIGN.TEST CR' % num)
+            self.assertEquals(expected, self.interp.output.readline())
+
+        # TODO: STARS (I'll need to implement a loop first.)
+
+        # WITHIN (n low-limit high-limit -- ) Puts a true flag if low-limit <= n < high-limit, but a false flag if not.
+        self.interp.processString(': WITHIN ROT DUP ROT < IF SWAP < IF 0 ELSE 1 THEN ELSE DROP DROP 0 THEN ;')
+        for item in [('6 4 8', '1'), ('3 4 8', '0'), ('9 4 8', '0')]:
+            numbers, expected = item
+            self.interp.processString('%s WITHIN . CR' % (numbers))
+            self.assertEquals(expected, self.interp.output.readline())
+
+                                                                                                                                                                                                                                                                                                                                                                
+            
+
+# end of Chapter04
