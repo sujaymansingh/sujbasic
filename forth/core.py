@@ -21,6 +21,9 @@ class Interpreter(object):
         # We have a separate one for FPs.
         self.fp_stack = Stack()
 
+        # And one for return values.
+        self.return_stack = Stack()
+
         # We can't use the stack for everything.
         self.memoryHeap = MemoryHeap()
 
