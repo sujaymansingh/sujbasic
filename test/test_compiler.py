@@ -63,21 +63,21 @@ class TestFactor(unittest.TestCase):
         # int * float
         f1 = self.createLiteral(4)
         f2 = self.createLiteral(4.0)
-        res = self.compiler.combineDetails(f1, TermOperatorMultiply, f2)
+        res = self.compiler.howToCombine(f1, TermOperatorMultiply, f2)
         self.assertTrue(res[0] == 'F*')
         self.assertTrue(type(res[1]) == compiler.data_types.Float)
 
         # float * int
         f1 = self.createLiteral(6.0)
         f2 = self.createLiteral(40)
-        res = self.compiler.combineDetails(f1, TermOperatorMultiply, f2)
+        res = self.compiler.howToCombine(f1, TermOperatorMultiply, f2)
         self.assertTrue(res[0] == 'F*')
         self.assertTrue(type(res[1]) == compiler.data_types.Float)
 
         # int / int
         f1 = self.createLiteral(60)
         f2 = self.createLiteral(40)
-        res = self.compiler.combineDetails(f1, TermOperatorDivide, f2)
+        res = self.compiler.howToCombine(f1, TermOperatorDivide, f2)
         self.assertTrue(res[0] == '/')
         self.assertTrue(type(res[1]) == compiler.data_types.Integer)
     # testCombineDetails
@@ -116,7 +116,7 @@ class TestFactor(unittest.TestCase):
         t1 = self.createTerm(5)
         t2 = self.createTerm(5.5)
         e = Expression(t1, ExpressionOperatorPlus, t2)
-        comb = self.compiler.combineDetails(e.primaryTerm, e.operator, e.secondaryTerm)
+        comb = self.compiler.howToCombine(e.primaryTerm, e.operator, e.secondaryTerm)
         self.assertEquals(comb[0], 'F+')
         self.assertEquals(type(comb[1]), compiler.data_types.Float)
         res = self.compiler.compileExpression(e)
@@ -130,7 +130,7 @@ class TestFactor(unittest.TestCase):
         t1 = self.createTerm(5)
         t2 = self.createTerm(5)
         e = Expression(t1, ExpressionOperatorPlus, t2)
-        comb = self.compiler.combineDetails(e.primaryTerm, e.operator, e.secondaryTerm)
+        comb = self.compiler.howToCombine(e.primaryTerm, e.operator, e.secondaryTerm)
         self.assertEquals(comb[0], '+')
         self.assertEquals(type(comb[1]), compiler.data_types.Integer)
         res = self.compiler.compileExpression(e)
