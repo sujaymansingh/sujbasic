@@ -165,9 +165,12 @@ class BasicParser(object):
         p[0] = lang.StatementLet(p[2], p[4])
 
     def p_statement_for(self, p):
-        'statement : FOR VARNAME EQUALS NUMBER TO NUMBER CR statements NEXT CR'
-        p[0] = lang.StatementFor(p[2], p[4], p[6], p[8])
+        'statement : FOR VARNAME EQUALS NUMBER TO NUMBER'
+        p[0] = lang.StatementFor(p[2], p[4], p[6])
 
+    def p_statement_next(self, p):
+        'statement : NEXT '
+        p[0] = lang.StatementNext()
 
     # Expression/terms/factors.
     #

@@ -40,6 +40,8 @@ class Compiler(object):
         self.codeOutput        = codeOutput
         self.variables         = {}
         self.variableIndex     = 0
+
+        self.forStatements          = []
     # end of __init__
 
     # Variables
@@ -94,6 +96,11 @@ class Compiler(object):
             return self.compileStatementPrint(stmt)
         elif type(stmt) == lang.StatementLet:
             return self.compileStatementLet(stmt)
+        elif type(stmt) == lang.StatementFor:
+            return self.compileStatementFor(stmt)
+        elif type(stmt) == lang.StatementNext:
+            return self.compileStatementNext(stmt)
+
     # end of compileStatement
 
     def compileStatementPrint(self, stmt):
@@ -123,6 +130,25 @@ class Compiler(object):
 
         return CompiledStatement([variable], statementCode)
     # end of compileStatementLet
+
+    def compileStatementFor(self, stmt):
+        variable = self.registerVariable(Variable(stmt.varname, data_types.Integer()))
+
+        # In basic, we want to include the end, not just stop just before the
+        # limit (which is what forth would do).
+        statementCode = [str(stmt.end + 1), str(stmt.start), 'DO']
+
+        # Oh and load the index into the variable.
+        statementCode.extend(['I', variable.forthName, '!'])
+
+        self.forStatements.append(stmt)
+        return CompiledStatement([variable], statementCode)
+    # end of compileStatementFor
+
+    def compileStatementNext(self, stmt):
+        forStmt = self.forStatements.pop()
+        return CompiledStatement([], [str(forStmt.step), '+LOOP'])
+    # end of compileStatementNext
 
     # Take a simple factor and compile it.
     #

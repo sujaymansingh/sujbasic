@@ -139,3 +139,18 @@ class StatementLet(Statement):
     def __str__(self):
         return 'StatementLet(%s, %s)' % (self.varname, self.expression)
 # end of Let Statement
+
+
+# For & Next
+class StatementFor(Statement):
+    def __init__(self, varname, start, end, step=1):
+        self.varname = varname
+        self.start   = start
+        self.end     = end
+        self.step    = step
+    def __str__(self):
+        return 'StatementFor(%s, %d, %d, step=%d)' % (self.varname, self.start, self.end, self.step)
+
+class StatementNext(Statement):
+    pass
+# end of For & Next
