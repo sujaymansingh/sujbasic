@@ -181,8 +181,12 @@ class Compiler(object):
             variable = self.variableForBasicName(value)
             if variable == None:
                 raise Exception('No variable found for %s')
+            result.append(variable.forthName)
             # Fetch the value of the variable.
-            result.extend([variable.forthName, '@'])
+            if type(variable.dataType) == data_types.Integer:
+                result.append('@')
+            elif type(variable.dataType) == data_types.Float:
+                result.append('F@')
 
         # Just compile the expression.
         elif factor.factorType == lang.FactorTypeExpression:
@@ -291,8 +295,8 @@ class Compiler(object):
             if item.factorType == lang.FactorTypeLiteral:
                 return self.compilerTypeObjFor(item.value.dataType)
             elif item.factorType == lang.FactorTypeVariable:
-                # For now assume integer :(
-                return data_types.Integer()
+                variable = self.variableForBasicName(item.value)
+                return variable.dataType
             elif item.factorType == lang.FactorTypeExpression:
                 return self.typeObjFor(item.value)
 
