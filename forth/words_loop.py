@@ -36,16 +36,8 @@ class Do(core.Word):
         if claimNextToken == True:
             interp.giveNextTokenTo(self)
         else:
-            return_stack_items = interp.return_stack.copyOfItems()
-            limit = return_stack_items[-2]
-            index = return_stack_items[-1]
-            tokensToRun = isLoopFinished(limit, index, interp)
-            if tokensToRun == None:
-                # Clear up the return stack.
-                interp.return_stack.pop()
-                interp.return_stack.pop()
-            else:
-                core.Batch().start(tokensToRun, interp)
+            # In Forth, the loop always runs once!
+            core.Batch().start(loopBodies.top(), interp)
 core.registerWord('DO', Do())
 
 
