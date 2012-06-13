@@ -202,9 +202,13 @@ class BasicParser(object):
         'term : factor'
         p[0] = lang.Term(p[1])
     
-    def p_factor_expression(self, p):
+    def p_factor_expression1(self, p):
         'factor : LPAREN expression RPAREN'
         p[0] = lang.Factor(lang.FactorTypeExpression, p[2])
+    
+    def p_factor_expression2(self, p):
+        'factor : expression'
+        p[0] = lang.Factor(lang.FactorTypeExpression, p[1])
     
     def p_factor_varname(self, p):
         'factor : VARNAME'
