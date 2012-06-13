@@ -103,14 +103,15 @@ core.registerWord('.S', DotS())
 #
 class F_Fetch(Word):
     def execute(self, interp):
-        # TODO!
-        pass
+        addr = interp.stack.pop()
+        interp.fp_stack.push(interp.memoryHeap.fetch(addr))
 core.registerWord('F@', F_Fetch())
 
 class F_Store(Word):
     def execute(self, interp):
-        # TODO!
-        pass
+        addr = interp.stack.pop()
+        f = interp.fp_stack.pop()
+        interp.memoryHeap.store(addr, f)
 core.registerWord('F!', F_Store())
 
 class F_Plus(Word):
