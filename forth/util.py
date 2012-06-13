@@ -178,7 +178,7 @@ class ForthTokeniser(Tokeniser):
     def nextToken(self):
         if self.readTillChar == None:
             token = Tokeniser.nextToken(self)
-            if token == '."':
+            if token.endswith('"'):
                 self.readTillChar = '"'
 
                 # Thing is, normally the tokeniser will read a token, then

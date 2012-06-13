@@ -31,7 +31,7 @@ class Interpreter(object):
         self.dictionary = {}
 
         for (symbol, word) in registeredWords:
-            self.dictionary[symbol] = word
+            self.addWord(symbol, word)
 
         self.wordHandlers = Stack()
 
@@ -57,9 +57,6 @@ class Interpreter(object):
 
     def handleToken(self, token):
 
-        # Forth is case-insensitive why not.
-        token = token.upper()
-
         if self.waitingForStdinToken != None:
             word = self.waitingForStdinToken
             self.waitingForStdinToken = None
@@ -79,8 +76,8 @@ class Interpreter(object):
             return
 
         # Right, nothing is waiting on anything. Execute that damned token.
-        if (token in self.dictionary):
-            word = self.dictionary[token]
+        if token.upper() in self.dictionary:
+            word = self.dictionary[token.upper()]
             word.execute(self)
         elif isDoubleInt(token):
             for i in parseDoubleInt(token):
@@ -118,7 +115,7 @@ class Interpreter(object):
         word.handleToken(token, self)
 
     def addWord(self, symbol, word):
-        self.dictionary[symbol] = word
+        self.dictionary[symbol.upper()] = word
 
     def processString(self, line):
         tokens = ForthTokeniser(line)
