@@ -173,7 +173,7 @@ class Compiler(object):
                 # lose too much precision.
                 result.append('%.20e' % (value.value))
             elif value.dataType == lang.DataTypeString:
-                result.append('TODO')
+                result.extend(['."', '%s"' % (value.value)])
 
         # This is less simple. We need to grab the value and push it onto the
         # stack.

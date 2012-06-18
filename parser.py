@@ -57,6 +57,7 @@ class BasicLexer(object):
         'RPAREN',
         'QUOTE',
         'COLON',
+        'QUOTED_VALUE',
     
         'FOR',
         'TO',
@@ -75,6 +76,7 @@ class BasicLexer(object):
     t_RPAREN   = '\)'
     t_QUOTE    = '\"'
     t_COLON    = ':'
+    t_QUOTED_VALUE = r'"[^"]*"'
 
     # Keywords.
     t_FOR   = 'FOR'
@@ -214,7 +216,11 @@ class BasicParser(object):
         'factor : VARNAME'
         p[0] = lang.Factor(lang.FactorTypeVariable, p[1])
     
-    def p_factor_literal(self, p):
+    def p_factor_literal_number(self, p):
         'factor : NUMBER'
         p[0] = lang.Factor(lang.FactorTypeLiteral, lang.createTypedValue(p[1]))
 
+    def p_factor_literal_string(self, p):
+        'factor : QUOTED_VALUE'
+        valueWithoutQuotes = p[1].strip('"')
+        p[0] = lang.Factor(lang.FactorTypeLiteral, lang.createTypedValue(valueWithoutQuotes))
