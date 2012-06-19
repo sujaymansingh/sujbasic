@@ -128,9 +128,6 @@ class Tokeniser(object):
         end = self.position
         result = self.line[start:end]
 
-        # Right, as a courtesy, read all the way up to the next potential token.
-        # This way if the string ends with a string of spaces, we won't get that returned as a token.
-        self.readUpto(NonWhiteSpace())
         return result
 
     def returnUptoChar(self, char):

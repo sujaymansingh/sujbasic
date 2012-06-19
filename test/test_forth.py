@@ -89,7 +89,7 @@ class TestTokeniser(unittest.TestCase):
         tokens = ["Now", "there", "are", "wrinkles", "round", "my", "baby's", "eyes"]
         self.checkTokens(tokens, tokeniser)
 
-        line = "    And she cries herself to sleep at night.    "
+        line = "    And she cries herself to sleep at night."
         tokeniser = Tokeniser(line)
         tokens = ["And", "she", "cries", "herself", "to", "sleep", "at", "night."]
         self.checkTokens(tokens, tokeniser)
