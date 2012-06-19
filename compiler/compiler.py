@@ -295,6 +295,13 @@ class Compiler(object):
             elif operator == lang.ExpressionOperatorMinus:
                 targetOperator = 'F-'
 
+        elif secondary != None and (type(sourceType1) == data_types.String or type(sourceType2) == data_types.String):
+            targetType = data_types.String()
+            if operator == lang.ExpressionOperatorPlus:
+                targetOperator = 'S+'
+            else:
+                raise Exception("no can do")
+
         return (targetOperator, targetType)
     # end of howToCombine
 

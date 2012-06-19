@@ -22,16 +22,7 @@ class StoreLiteral(core.Word):
         interp.giveNextTokenTo(self)
 
     def handleToken(self, token, interp):
-        address = interp.memoryHeap.currentAddress()
-        startAddress = address
-        interp.memoryHeap.allocate(len(token))
-
-        for c in token:
-            interp.memoryHeap.store(address, ord(c))
-            address += 1
-
-        interp.stack.push(startAddress)
-        interp.stack.push(len(token))
+        store(token, interp)
 core.registerWord('S"', StoreLiteral())
 
 
@@ -40,11 +31,41 @@ core.registerWord('S"', StoreLiteral())
 class Type(core.Word):
     """(addr n -- ) Types out n bytes from addr"""
     def execute(self, interp):
-        n = interp.stack.pop()
-        addr = interp.stack.pop()
-        i = 0
-        while i < n:
-            char = chr(interp.memoryHeap.fetch(addr + i))
-            interp.output.write(char)
-            i += 1 
+        interp.output.write(fetch(interp))
 core.registerWord('TYPE', Type())
+
+
+# String concatenation.
+#
+class StringConcat(core.Word):
+    """(addr1 u1 addr2 u2 -- ) Concats the two strings, then push the result back on the stack."""
+    def execute(self, interp):
+        string2 = fetch(interp)
+        string1 = fetch(interp)
+        store(string1 + string2, interp)
+core.registerWord('S+', StringConcat())
+
+
+def store(string, interp):
+    address = interp.memoryHeap.currentAddress()
+    startAddress = address
+    interp.memoryHeap.allocate(len(string))
+    
+    for c in string:
+        interp.memoryHeap.store(address, ord(c))
+        address += 1
+    
+    interp.stack.push(startAddress)
+    interp.stack.push(len(string))
+
+
+def fetch(interp):
+    u    = interp.stack.pop()
+    addr = interp.stack.pop()
+    i = 0
+    string = ''
+    while i < u:
+        char = chr(interp.memoryHeap.fetch(addr + i))
+        string += char
+        i += 1
+    return string
