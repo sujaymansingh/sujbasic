@@ -99,6 +99,22 @@ class DotS(Word):
 core.registerWord('.S', DotS())
 
 
+class Cell(Word):
+    """( -- ) Print the cell-size."""
+    def execute(self, interp):
+        interp.output.write(str(1))
+core.registerWord('CELL', Cell())
+
+
+class Cells(Word):
+    """(u1 -- u2) Convert the TOS into cell-size."""
+    def execute(self, interp):
+        u1 = interp.stack.pop()
+        u2 = u1 * 1
+        interp.stack.push(u2)
+core.registerWord('CELLS', Cells())
+
+
 # Floating point stuff.
 #
 class F_Fetch(Word):

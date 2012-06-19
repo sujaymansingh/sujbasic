@@ -71,8 +71,11 @@ class Compiler(object):
         compiledStatement = self.compileStatement(statement)
 
         for variable in compiledStatement.variables:
-            # TODO, not always 1!!
-            code = ['CREATE', variable.forthName, '1', 'ALLOT']
+            if type(variable.dataType) == data_types.String:
+                size = 2
+            else:
+                size = 1
+            code = ['CREATE', variable.forthName, str(size), 'CELLS', 'ALLOT']
             self.codeOutput.addHeaderCode(code)
 
         if self.blockLevel == 0:
@@ -112,6 +115,8 @@ class Compiler(object):
             result.append('.')
         elif type(typeObj) == data_types.Float:
             result.append('F.')
+        elif type(typeObj) == data_types.String:
+            result.append('TYPE')
         result.append('CR')
 
         return CompiledStatement([], result)
@@ -127,6 +132,8 @@ class Compiler(object):
             statementCode.append('!')
         elif type(variable.dataType) == data_types.Float:
             statementCode.append('F!')
+        elif type(variable.dataType) == data_types.String:
+            statementCode.extend(['!', variable.forthName, '1', 'CELLS', '+', '!'])
 
         return CompiledStatement([variable], statementCode)
     # end of compileStatementLet
@@ -173,7 +180,7 @@ class Compiler(object):
                 # lose too much precision.
                 result.append('%.20e' % (value.value))
             elif value.dataType == lang.DataTypeString:
-                result.extend(['."', '%s"' % (value.value)])
+                result.extend(['S"', '%s"' % (value.value)])
 
         # This is less simple. We need to grab the value and push it onto the
         # stack.
@@ -187,6 +194,8 @@ class Compiler(object):
                 result.append('@')
             elif type(variable.dataType) == data_types.Float:
                 result.append('F@')
+            elif type(variable.dataType) == data_types.String:
+                result.extend(['1', 'CELLS', '+', '@', variable.forthName, '@'])
 
         # Just compile the expression.
         elif factor.factorType == lang.FactorTypeExpression:
