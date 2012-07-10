@@ -112,7 +112,9 @@ class Expression(object):
 #
 class Statement(object):
 
-    # A default of 1.
+    # By default we are at the 'base' block level of zero.
+    # I.e. we are not a statement within another statement block (e.g. within
+    # a for loop).
     def blockLevel(self):
         return 0
 # end of Statement
