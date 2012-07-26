@@ -1,3 +1,6 @@
 [submodule "ply"]
 	path = ply
 	url = https://github.com/dabeaz/ply.git
+[submodule "lib/ply"]
+	path = lib/ply
+	url = https://github.com/dabeaz/ply.git
